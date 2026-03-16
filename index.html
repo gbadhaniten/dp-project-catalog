@@ -276,8 +276,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 // Replace these URLs with your actual SharePoint direct download links
 // Format: https://yourcompany.sharepoint.com/:x:/s/yoursite/...?download=1
 const CSV_URLS = {
-  projects:  'data/PROJECTS.csv',
-  documents: 'data/DOCUMENTS.csv'
+  projects:  'https://technip.sharepoint.com/sites/DataPlatforms/Shared%20Documents/Documents%20%E2%86%92%20DE-Catalog-Data/PROJECTS.csv?download=1',
+  documents: 'https://technip.sharepoint.com/sites/DataPlatforms/Shared%20Documents/Documents%20%E2%86%92%20DE-Catalog-Data/PROJECTS.csv?download=1'
 };
 // PROJECTS.csv must include these columns (add ExpectedResult column for expected outcomes):
 // ProjectID, DomainName, ProjectName, Status, Architecture, ProjectOwner, DataOwner,
@@ -285,8 +285,8 @@ const CSV_URLS = {
 // StartDate, TargetEndDate, ActualEndDate, ProjectCost, ProgressPct, ExpectedResult, IsActive
 //
 // To use SharePoint, replace above with:
-// projects:  'https://YOURCOMPANY.sharepoint.com/sites/YOURSITE/Shared%20Documents/DE-Catalog-Data/PROJECTS.csv?download=1',
-// documents: 'https://YOURCOMPANY.sharepoint.com/sites/YOURSITE/Shared%20Documents/DE-Catalog-Data/DOCUMENTS.csv?download=1'
+// projects:  'https://technip.sharepoint.com/sites/DataPlatforms/Shared%20Documents/Documents%20%E2%86%92%20DE-Catalog-Data/PROJECTS.csv?download=1',
+// documents: 'https://technip.sharepoint.com/sites/DataPlatforms/Shared%20Documents/Documents%20%E2%86%92%20DE-Catalog-Data/DOCUMENTS.csv?download=1'
 
 // ─── DOMAIN DEFINITIONS (hardcoded as requested — all 17 domains always visible) ──
 const DOMAINS = [
