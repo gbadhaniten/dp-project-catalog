@@ -4,778 +4,592 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DE Project Catalog</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-/* ─── RESET & TOKENS ─────────────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --navy:#004C84;--blue:#0070EF;--medblue:#3D97B7;--teal:#80C7A0;
-  --coral:#EE7766;--amber:#FDC300;--lime:#A2C61C;--pink:#E84242;
-  --bg:#F0F4F8;--card:#FFFFFF;--border:#E2E8F0;--border2:#CBD5E1;
-  --text:#0F172A;--muted:#64748B;--sub:#94A3B8;
-  --del-bg:#ECFDF5;--del-tx:#065F46;--del-br:#6EE7B7;
-  --prg-bg:#FFFBEB;--prg-tx:#92400E;--prg-br:#FCD34D;
-  --pln-bg:#EFF6FF;--pln-tx:#1E40AF;--pln-br:#93C5FD;
-  --rad:14px;--rad-sm:8px;--rad-lg:20px;
-  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.06);
-  --sh-lg:0 4px 24px rgba(0,0,0,.10),0 1px 4px rgba(0,0,0,.06);
-  --font-display:'Syne',sans-serif;
-  --font-body:'DM Sans',sans-serif;
-  --font-mono:'DM Mono',monospace;
+  --navy:#004C84;--blue:#0070EF;--med:#3D97B7;
+  --bg:#F0F4F8;--card:#fff;--bdr:#E2E8F0;--bdr2:#CBD5E1;
+  --txt:#0F172A;--mut:#64748B;--sub:#94A3B8;
+  --dbg:#ECFDF5;--dtx:#065F46;--dbr:#6EE7B7;
+  --pbg:#FFFBEB;--ptx:#92400E;--pbr:#FCD34D;
+  --lbg:#EFF6FF;--ltx:#1E40AF;--lbr:#93C5FD;
+  --obg:#F5F3FF;--otx:#5B21B6;--obr:#C4B5FD;
+  --r:14px;--sh:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.06);
+  --shl:0 4px 24px rgba(0,0,0,.1),0 1px 4px rgba(0,0,0,.06);
 }
-body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:14px;line-height:1.6}
-/* ─── SCROLLBAR ──────────────────────────────────────────────────────────── */
-::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-/* ─── TOPBAR ─────────────────────────────────────────────────────────────── */
-.topbar{background:var(--navy);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,76,132,.35)}
-.topbar-left{display:flex;align-items:center;gap:14px}
-.topbar-logo{width:32px;height:32px;background:rgba(255,255,255,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.topbar-logo svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.topbar-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:#fff;letter-spacing:.01em}
-.topbar-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:1px}
-.topbar-right{display:flex;align-items:center;gap:8px}
-.topbar-badge{background:rgba(255,255,255,.12);color:rgba(255,255,255,.8);font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;font-family:var(--font-mono);letter-spacing:.02em}
-/* ─── BREADCRUMB ─────────────────────────────────────────────────────────── */
-.breadcrumb{background:#fff;border-bottom:1px solid var(--border);padding:0 2rem;height:36px;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
-.bc-link{color:var(--blue);cursor:pointer;font-weight:500;transition:color .15s}
-.bc-link:hover{color:var(--navy);text-decoration:underline}
-.bc-sep{color:var(--border2);font-size:10px}
-.bc-current{color:var(--text);font-weight:500}
-/* ─── KPI STRIP ──────────────────────────────────────────────────────────── */
-.kpi-strip{background:#fff;border-bottom:1px solid var(--border);padding:0 2rem;display:flex;gap:0;overflow-x:auto}
-.kpi-item{flex:1;min-width:140px;padding:12px 20px;display:flex;flex-direction:column;gap:3px;border-right:1px solid var(--border);cursor:default;transition:background .15s}
-.kpi-item:last-child{border-right:none}
-.kpi-item:hover{background:var(--bg)}
-.kpi-lbl{font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;font-family:var(--font-mono)}
-.kpi-val{font-family:var(--font-display);font-size:26px;font-weight:700;line-height:1}
-.kpi-sub{font-size:11px;color:var(--muted)}
-.kv-total{color:var(--navy)}.kv-del{color:#059669}.kv-prg{color:#D97706}.kv-pln{color:#2563EB}
-/* ─── FILTER BAR ─────────────────────────────────────────────────────────── */
-.filter-bar{background:#fff;border-bottom:1px solid var(--border);padding:10px 2rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.filter-label{font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-right:4px;font-family:var(--font-mono)}
-.pill{font-size:12px;font-weight:500;padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer;color:var(--muted);background:#fff;transition:all .15s;white-space:nowrap;user-select:none;font-family:var(--font-body)}
-.pill:hover:not(.active){border-color:var(--medblue);color:var(--navy);background:var(--pln-bg)}
+body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden;font-size:14px;line-height:1.6}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:3px}
+/* TOP BAR */
+.tb{background:var(--navy);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,76,132,.3)}
+.tb-l{display:flex;align-items:center;gap:14px}
+.tb-ico{width:32px;height:32px;background:rgba(255,255,255,.12);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.tb-ico svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tb-title{font-family:"Syne",sans-serif;font-size:15px;font-weight:700;color:#fff}
+.tb-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:1px}
+.tb-r{display:flex;align-items:center;gap:8px}
+.tb-badge{font-size:11px;padding:4px 12px;border-radius:20px;font-family:"DM Mono",monospace}
+.badge-ok{background:rgba(163,230,53,.15);color:#a3e635}
+.badge-err{background:rgba(239,68,68,.15);color:#f87171}
+.badge-load{background:rgba(255,255,255,.12);color:rgba(255,255,255,.7)}
+/* BREADCRUMB */
+.bc{background:#fff;border-bottom:1px solid var(--bdr);padding:0 2rem;height:36px;display:flex;align-items:center;gap:6px;font-size:12px}
+.bc-lnk{color:var(--blue);cursor:pointer;font-weight:500}.bc-lnk:hover{text-decoration:underline}
+.bc-sep{color:var(--bdr2)}.bc-cur{color:var(--txt);font-weight:500}
+/* KPI */
+.kpi{background:#fff;border-bottom:1px solid var(--bdr);display:flex;overflow-x:auto}
+.kpi-i{flex:1;min-width:130px;padding:12px 20px;border-right:1px solid var(--bdr)}
+.kpi-i:last-child{border-right:none}.kpi-i:hover{background:var(--bg)}
+.kpi-l{font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;font-family:"DM Mono",monospace}
+.kpi-v{font-family:"Syne",sans-serif;font-size:26px;font-weight:700;line-height:1.1;margin-top:2px}
+.kpi-s{font-size:11px;color:var(--mut);margin-top:1px}
+.kv-n{color:var(--navy)}.kv-d{color:#059669}.kv-p{color:#D97706}.kv-l{color:#2563EB}
+/* FILTER */
+.fbar{background:#fff;border-bottom:1px solid var(--bdr);padding:10px 2rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.fl{font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-right:4px;font-family:"DM Mono",monospace}
+.pill{font-size:12px;font-weight:500;padding:5px 14px;border-radius:20px;border:1.5px solid var(--bdr);cursor:pointer;color:var(--mut);background:#fff;transition:all .15s;white-space:nowrap;user-select:none}
+.pill:hover:not(.active){border-color:var(--med);color:var(--navy);background:var(--lbg)}
 .pill.active{background:var(--navy);color:#fff;border-color:var(--navy)}
-/* ─── MAIN CONTENT ───────────────────────────────────────────────────────── */
-.content{padding:1.5rem 2rem;max-width:1400px;margin:0 auto}
+/* CONTENT */
+.cnt{padding:1.5rem 2rem;max-width:1400px;margin:0 auto}
 .view{display:none}.view.active{display:block}
-/* ─── DOMAIN GRID ────────────────────────────────────────────────────────── */
-.domain-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
-.domain-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:0;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;box-shadow:var(--sh)}
-.domain-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.domain-card:hover{transform:translateY(-2px);box-shadow:var(--sh-lg);border-color:var(--border2)}
-.domain-card:hover .dc-arrow{opacity:1;transform:translateX(0)}
-.dc-body{padding:16px 18px}
-.dc-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
-.dc-avatar{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:13px;font-weight:700;flex-shrink:0;letter-spacing:.01em}
-.dc-info{flex:1;min-width:0}
-.dc-name{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--navy);line-height:1.3;margin-bottom:2px}
-.dc-owner{font-size:11px;color:var(--muted);font-weight:400}
-.dc-desc{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.dc-stats{display:flex;gap:6px;flex-wrap:wrap}
-.dc-stat{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
-.stat-del{background:var(--del-bg);color:var(--del-tx);border:1px solid var(--del-br)}
-.stat-prg{background:var(--prg-bg);color:var(--prg-tx);border:1px solid var(--prg-br)}
-.stat-pln{background:var(--pln-bg);color:var(--pln-tx);border:1px solid var(--pln-br)}
-.dc-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-top:1px solid var(--border);background:var(--bg)}
-.dc-footer-label{font-size:11px;font-weight:500;color:var(--medblue)}
-.dc-arrow{font-size:14px;color:var(--medblue);opacity:0;transform:translateX(-4px);transition:all .2s}
-/* ─── PROJECT TABLE ──────────────────────────────────────────────────────── */
-.proj-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.proj-title{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--navy)}
-.proj-sub{font-size:12px;color:var(--muted);margin-top:2px}
-.proj-filters{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);overflow:hidden;box-shadow:var(--sh)}
-.proj-table{width:100%;border-collapse:collapse}
-.proj-table th{background:var(--navy);color:#fff;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:11px 14px;text-align:left;white-space:nowrap;font-family:var(--font-mono)}
-.proj-table td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:12px;color:var(--muted)}
-.proj-table tr:last-child td{border-bottom:none}
-.proj-table tr:hover td{background:#F8FAFF;cursor:pointer}
-.proj-table tr.empty td{text-align:center;padding:40px;color:var(--sub)}
-.pname{font-size:13px;font-weight:600;color:var(--navy);font-family:var(--font-display)}
-.arch-tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:6px;background:var(--bg);color:var(--muted);border:1px solid var(--border);font-family:var(--font-mono)}
-.status-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap}
-.status-badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
-.sb-del{background:var(--del-bg);color:var(--del-tx);border:1px solid var(--del-br)}.sb-del::before{background:var(--del-tx)}
-.sb-prg{background:var(--prg-bg);color:var(--prg-tx);border:1px solid var(--prg-br)}.sb-prg::before{background:var(--prg-tx)}
-.sb-pln{background:var(--pln-bg);color:var(--pln-tx);border:1px solid var(--pln-br)}.sb-pln::before{background:var(--pln-tx)}
-.prog-wrap{display:flex;align-items:center;gap:8px;min-width:90px}
-.prog-bar{flex:1;height:5px;border-radius:3px;background:var(--border);overflow:hidden}
-.prog-fill{height:100%;border-radius:3px;background:var(--medblue);transition:width .4s ease}
-.prog-pct{font-size:10px;font-weight:600;color:var(--medblue);min-width:28px;font-family:var(--font-mono)}
-/* ─── PROJECT DETAIL ─────────────────────────────────────────────────────── */
-.detail-hero{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:20px 24px;margin-bottom:16px;border-left:4px solid var(--navy);box-shadow:var(--sh)}
-.dh-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:10px;flex-wrap:wrap}
-.dh-title{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--navy);line-height:1.2}
-.dh-domain{font-size:12px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:6px}
-.dh-lead{font-weight:600;color:var(--navy)}
-.dh-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.dh-tag{font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;background:var(--bg);color:var(--muted);border:1px solid var(--border);font-family:var(--font-mono)}
-.dh-cost{background:var(--del-bg);color:var(--del-tx);border-color:var(--del-br)}
-.detail-grid{display:grid;grid-template-columns:1fr 340px;gap:16px}
-@media(max-width:900px){.detail-grid{grid-template-columns:1fr}}
-.det-main,.det-side{display:flex;flex-direction:column;gap:14px}
-.det-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);box-shadow:var(--sh)}
-.det-card-hdr{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
-.det-card-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.det-card-icon svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.det-card-title{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;font-family:var(--font-mono)}
-.det-card-body{padding:14px 18px}
-.desc-text{font-size:13px;color:var(--muted);line-height:1.7}
-.uc-list{display:flex;flex-direction:column;gap:8px}
-.uc-item{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);line-height:1.5}
-.uc-dot{width:6px;height:6px;border-radius:50%;background:var(--medblue);margin-top:6px;flex-shrink:0}
-.doc-list{display:flex;flex-direction:column;gap:0}
-.doc-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
-.doc-row:last-child{border-bottom:none}
-.doc-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0;font-family:var(--font-mono);letter-spacing:.02em}
-.doc-name{font-size:12px;color:var(--text);font-weight:500;flex:1}
-.doc-status{font-size:10px;font-weight:600;padding:3px 9px;border-radius:10px}
-.ds-avail{background:var(--del-bg);color:var(--del-tx);border:1px solid var(--del-br)}
-.ds-pend{background:var(--bg);color:var(--sub);border:1px solid var(--border)}
-.ds-rev{background:var(--prg-bg);color:var(--prg-tx);border:1px solid var(--prg-br)}
-.doc-link{font-size:11px;color:var(--blue);text-decoration:none;font-weight:500;padding:3px 8px;border-radius:6px;background:var(--pln-bg);border:1px solid var(--pln-br);white-space:nowrap;transition:all .15s}
-.doc-link:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
-.field-list{display:flex;flex-direction:column;gap:0}
-.field-row{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);align-items:flex-start}
-.field-row:last-child{border-bottom:none}
-.field-lbl{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;min-width:100px;padding-top:2px;font-family:var(--font-mono);flex-shrink:0}
-.field-val{font-size:12px;color:var(--text);font-weight:500;line-height:1.5;flex:1}
-.field-val.lead{color:var(--navy);font-weight:700;font-family:var(--font-display)}
-.tbar-wrap{height:8px;border-radius:4px;background:var(--border);overflow:hidden;margin-top:6px;flex:1}
-.tbar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--medblue),var(--blue))}
-.cost-val{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--del-tx)}
-.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--medblue);cursor:pointer;padding:6px 0;margin-bottom:12px;transition:color .15s;font-family:var(--font-body)}
-.back-btn:hover{color:var(--navy)}
-.back-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
-.back-btn:hover svg{transform:translateX(-3px)}
-/* ─── LOADING / EMPTY ────────────────────────────────────────────────────── */
-.loading{display:flex;align-items:center;justify-content:center;height:200px;color:var(--sub);font-size:13px;gap:10px}
-.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--medblue);border-radius:50%;animation:spin .7s linear infinite}
+/* ERROR BANNER */
+.err-banner{background:#FEF2F2;border:1px solid #FCA5A5;border-radius:12px;padding:20px 24px;margin-bottom:20px;display:none}
+.err-banner.show{display:block}
+.err-title{font-family:"Syne",sans-serif;font-weight:700;color:#991B1B;margin-bottom:8px;font-size:15px}
+.err-body{font-size:13px;color:#7F1D1D;line-height:1.7}
+.err-body code{background:#FEE2E2;padding:2px 6px;border-radius:4px;font-family:"DM Mono",monospace;font-size:12px}
+/* LOADING */
+.loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px}
+.spin{width:36px;height:36px;border:3px solid var(--bdr);border-top-color:var(--navy);border-radius:50%;animation:spin .8s linear infinite}
+.load-txt{font-size:14px;color:var(--mut)}
 @keyframes spin{to{transform:rotate(360deg)}}
-.empty-msg{text-align:center;padding:60px 20px;color:var(--sub)}
-.empty-msg .em-icon{font-size:32px;margin-bottom:12px;opacity:.5}
-.empty-msg p{font-size:13px}
-/* ─── SECTION HEADING ────────────────────────────────────────────────────── */
-.sec-heading{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.sec-heading::after{content:'';flex:1;height:1px;background:var(--border)}
-/* ─── ANIMATIONS ─────────────────────────────────────────────────────────── */
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.domain-card{animation:fadeUp .3s ease both}
-.domain-card:nth-child(1){animation-delay:.03s}.domain-card:nth-child(2){animation-delay:.06s}.domain-card:nth-child(3){animation-delay:.09s}
-.domain-card:nth-child(4){animation-delay:.12s}.domain-card:nth-child(5){animation-delay:.15s}.domain-card:nth-child(6){animation-delay:.18s}
-.domain-card:nth-child(7){animation-delay:.21s}.domain-card:nth-child(8){animation-delay:.24s}.domain-card:nth-child(9){animation-delay:.27s}
-.domain-card:nth-child(10){animation-delay:.30s}.domain-card:nth-child(11){animation-delay:.33s}.domain-card:nth-child(12){animation-delay:.36s}
-.domain-card:nth-child(13){animation-delay:.39s}.domain-card:nth-child(14){animation-delay:.42s}.domain-card:nth-child(15){animation-delay:.45s}
-.domain-card:nth-child(16){animation-delay:.48s}.domain-card:nth-child(17){animation-delay:.51s}
-/* ─── AVATAR COLORS ──────────────────────────────────────────────────────── */
-.av-blue{background:#EFF6FF;color:#1D4ED8}.av-green{background:#ECFDF5;color:#065F46}
-.av-amber{background:#FFFBEB;color:#92400E}.av-coral{background:#FFF1EE;color:#9A3412}
-.av-purple{background:#F5F3FF;color:#5B21B6}.av-teal{background:#F0FDFA;color:#134E4A}
-.av-navy{background:#EFF6FF;color:#1E3A5F}.av-lime{background:#F7FEE7;color:#3F6212}
-.av-grey{background:#F8FAFC;color:#475569}
+/* STATUS BADGES */
+.sbg{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap}
+.sbg::before{content:"";width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.sb-d{background:var(--dbg);color:var(--dtx);border:1px solid var(--dbr)}.sb-d::before{background:var(--dtx)}
+.sb-p{background:var(--pbg);color:var(--ptx);border:1px solid var(--pbr)}.sb-p::before{background:var(--ptx)}
+.sb-l{background:var(--lbg);color:var(--ltx);border:1px solid var(--lbr)}.sb-l::before{background:var(--ltx)}
+/* DOMAIN GRID */
+.sh{font-family:"Syne",sans-serif;font-size:13px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sh::after{content:"";flex:1;height:1px;background:var(--bdr)}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.dc{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);cursor:pointer;transition:all .2s;overflow:hidden;box-shadow:var(--sh);animation:fu .3s ease both}
+.dc:hover{transform:translateY(-2px);box-shadow:var(--shl);border-color:var(--bdr2)}
+.dc:hover .dc-arr{opacity:1;transform:translateX(0)}
+.dc-b{padding:16px 18px}.dc-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+.dc-av{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:"Syne",sans-serif;font-size:13px;font-weight:700;flex-shrink:0}
+.dc-n{font-family:"Syne",sans-serif;font-size:13px;font-weight:700;color:var(--navy);line-height:1.3;margin-bottom:2px}
+.dc-o{font-size:11px;color:var(--mut)}
+.dc-desc{font-size:12px;color:var(--mut);line-height:1.55;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dc-st{display:flex;gap:6px;flex-wrap:wrap}
+.dc-s{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.s-d{background:var(--dbg);color:var(--dtx);border:1px solid var(--dbr)}
+.s-p{background:var(--pbg);color:var(--ptx);border:1px solid var(--pbr)}
+.s-l{background:var(--lbg);color:var(--ltx);border:1px solid var(--lbr)}
+.dc-ft{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-top:1px solid var(--bdr);background:var(--bg)}
+.dc-ftl{font-size:11px;font-weight:500;color:var(--med)}
+.dc-arr{font-size:14px;color:var(--med);opacity:0;transform:translateX(-4px);transition:all .2s}
+/* PROJECTS TABLE */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.ph-t{font-family:"Syne",sans-serif;font-size:20px;font-weight:700;color:var(--navy)}
+.ph-s{font-size:12px;color:var(--mut);margin-top:2px}
+.tw{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.pt{width:100%;border-collapse:collapse}
+.pt th{background:var(--navy);color:#fff;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:11px 14px;text-align:left;white-space:nowrap;font-family:"DM Mono",monospace}
+.pt td{padding:12px 14px;border-bottom:1px solid var(--bdr);vertical-align:middle;font-size:12px;color:var(--mut)}
+.pt tr:last-child td{border-bottom:none}
+.pt tr:hover td{background:#F8FAFF;cursor:pointer}
+.pt tr.empty td{text-align:center;padding:40px;color:var(--sub)}
+.pn{font-size:13px;font-weight:600;color:var(--navy);font-family:"Syne",sans-serif}
+.atag{font-size:10px;padding:2px 8px;border-radius:6px;background:var(--bg);color:var(--mut);border:1px solid var(--bdr);font-family:"DM Mono",monospace;display:inline-block}
+.pw{display:flex;align-items:center;gap:8px;min-width:90px}
+.pb{flex:1;height:5px;border-radius:3px;background:var(--bdr);overflow:hidden}
+.pf{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--med),var(--blue))}
+.pp{font-size:10px;font-weight:600;color:var(--med);min-width:28px;font-family:"DM Mono",monospace}
+/* DETAIL */
+.bb{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--med);cursor:pointer;padding:6px 0;margin-bottom:12px;transition:color .15s}
+.bb:hover{color:var(--navy)}
+.bb svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
+.bb:hover svg{transform:translateX(-3px)}
+.dh{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:20px 24px;margin-bottom:16px;border-left:4px solid var(--navy);box-shadow:var(--sh)}
+.dh-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:10px;flex-wrap:wrap}
+.dh-t{font-family:"Syne",sans-serif;font-size:22px;font-weight:800;color:var(--navy);line-height:1.2}
+.dh-d{font-size:12px;color:var(--mut);margin-top:4px;display:flex;align-items:center;gap:6px}
+.dh-ld{font-weight:600;color:var(--navy)}
+.dh-tg{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.dh-tag{font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;background:var(--bg);color:var(--mut);border:1px solid var(--bdr);font-family:"DM Mono",monospace}
+.dh-cost{background:var(--dbg);color:var(--dtx);border-color:var(--dbr)}
+.dg{display:grid;grid-template-columns:1fr 320px;gap:16px}
+@media(max-width:900px){.dg{grid-template-columns:1fr}}
+.dm,.ds{display:flex;flex-direction:column;gap:14px}
+.dc2{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--sh)}
+.dch{padding:12px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px}
+.dci{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dci svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dct{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;font-family:"DM Mono",monospace}
+.dct-note{font-size:10px;color:var(--sub);margin-left:auto;font-family:"DM Mono",monospace}
+.dcb{padding:14px 18px}
+.dtxt{font-size:13px;color:var(--mut);line-height:1.7}
+.ucl{display:flex;flex-direction:column;gap:8px}
+.uci{display:flex;gap:10px;font-size:13px;color:var(--mut);line-height:1.5}
+.ucd{width:6px;height:6px;border-radius:50%;background:var(--med);margin-top:6px;flex-shrink:0}
+.obox{background:var(--obg);border:1px solid var(--obr);border-radius:10px;padding:14px 16px}
+.otxt{font-size:13px;color:var(--otx);line-height:1.65;font-style:italic}
+.dl{display:flex;flex-direction:column}
+.dr{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr)}
+.dr:last-child{border-bottom:none}
+.dic{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0;font-family:"DM Mono",monospace}
+.dn{font-size:12px;color:var(--txt);font-weight:500;flex:1}
+.ds2{font-size:10px;font-weight:600;padding:3px 9px;border-radius:10px;flex-shrink:0}
+.ds-a{background:var(--dbg);color:var(--dtx);border:1px solid var(--dbr)}
+.ds-p{background:var(--bg);color:var(--sub);border:1px solid var(--bdr)}
+.ds-r{background:var(--pbg);color:var(--ptx);border:1px solid var(--pbr)}
+.dlnk{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#fff;background:var(--blue);padding:4px 10px;border-radius:8px;text-decoration:none;transition:background .15s;flex-shrink:0}
+.dlnk:hover{background:var(--navy)}
+.dlnk svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dlnk-na{font-size:10px;color:var(--sub);font-style:italic;flex-shrink:0}
+.fl2{display:flex;flex-direction:column}
+.fr{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--bdr);align-items:flex-start}
+.fr:last-child{border-bottom:none}
+.frl{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;min-width:100px;padding-top:2px;font-family:"DM Mono",monospace;flex-shrink:0}
+.frv{font-size:12px;color:var(--txt);font-weight:500;line-height:1.5;flex:1}
+.frv-ld{color:var(--navy);font-weight:700;font-family:"Syne",sans-serif;font-size:13px}
+.tbar{height:8px;border-radius:4px;background:var(--bdr);overflow:hidden;margin-top:6px}
+.tbarf{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--med),var(--blue))}
+.cval{font-family:"Syne",sans-serif;font-size:16px;font-weight:700;color:var(--dtx)}
+.avsm{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:3px;font-family:"DM Mono",monospace}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
-<div class="topbar">
-  <div class="topbar-left">
-    <div class="topbar-logo">
-      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-    </div>
-    <div>
-      <div class="topbar-title">Data Engineering — Project Catalog</div>
-      <div class="topbar-sub">Data Platform Lead: Gaurav Badhani</div>
-    </div>
+<div class="tb">
+  <div class="tb-l">
+    <div class="tb-ico"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+    <div><div class="tb-title">Data Engineering &mdash; Project Catalog</div><div class="tb-sub">Data Platform Lead: Gaurav Badhani</div></div>
   </div>
-  <div class="topbar-right">
-    <div class="topbar-badge" id="last-updated">Loading data…</div>
+  <div class="tb-r">
+    <div class="tb-badge badge-load" id="ts">Connecting&hellip;</div>
   </div>
 </div>
 
-<!-- BREADCRUMB -->
-<div class="breadcrumb" id="breadcrumb">
-  <span class="bc-link" onclick="goHome()">All Domains</span>
+<div class="bc" id="bc"><span class="bc-lnk" onclick="goHome()">All Domains</span></div>
+
+<div class="kpi">
+  <div class="kpi-i"><div class="kpi-l">Total Projects</div><div class="kpi-v kv-n" id="kt">—</div><div class="kpi-s" id="ks">loading&hellip;</div></div>
+  <div class="kpi-i"><div class="kpi-l">Delivered</div><div class="kpi-v kv-d" id="kd">—</div><div class="kpi-s">in production</div></div>
+  <div class="kpi-i"><div class="kpi-l">In Progress</div><div class="kpi-v kv-p" id="kp">—</div><div class="kpi-s">active builds</div></div>
+  <div class="kpi-i"><div class="kpi-l">To Be Started</div><div class="kpi-v kv-l" id="kl">—</div><div class="kpi-s">upcoming</div></div>
+  <div class="kpi-i"><div class="kpi-l">Domains</div><div class="kpi-v kv-n" id="kdom">—</div><div class="kpi-s">business domains</div></div>
 </div>
 
-<!-- KPI STRIP -->
-<div class="kpi-strip">
-  <div class="kpi-item"><div class="kpi-lbl">Total Projects</div><div class="kpi-val kv-total" id="k-total">—</div><div class="kpi-sub" id="k-total-sub">loading…</div></div>
-  <div class="kpi-item"><div class="kpi-lbl">Delivered</div><div class="kpi-val kv-del" id="k-del">—</div><div class="kpi-sub">in production</div></div>
-  <div class="kpi-item"><div class="kpi-lbl">In Progress</div><div class="kpi-val kv-prg" id="k-prg">—</div><div class="kpi-sub">active builds</div></div>
-  <div class="kpi-item"><div class="kpi-lbl">To Be Started</div><div class="kpi-val kv-pln" id="k-pln">—</div><div class="kpi-sub">upcoming</div></div>
-  <div class="kpi-item"><div class="kpi-lbl">Domains</div><div class="kpi-val kv-total" id="k-dom">17</div><div class="kpi-sub">business domains</div></div>
+<div class="fbar" id="fbar">
+  <span class="fl">Domain</span>
+  <span class="pill active" onclick="setDF('All',this)">All</span>
+  <span id="dpills"></span>
 </div>
 
-<!-- FILTER BAR -->
-<div class="filter-bar" id="filter-bar">
-  <span class="filter-label">Domain</span>
-  <span class="pill active" onclick="setDomainFilter('All',this)">All</span>
-  <!-- domain pills injected dynamically -->
-  <span id="domain-pills"></span>
-</div>
-
-<!-- MAIN CONTENT -->
-<div class="content">
-
-  <!-- VIEW 1: DOMAIN OVERVIEW -->
-  <div class="view active" id="view-domains">
-    <div class="sec-heading">Business Domains</div>
-    <div class="domain-grid" id="domain-grid">
-      <div class="loading"><div class="spinner"></div>Loading domains…</div>
-    </div>
+<div class="cnt">
+  <div id="err-banner" class="err-banner">
+    <div class="err-title" id="err-title">Could not load data</div>
+    <div class="err-body" id="err-body"></div>
   </div>
 
-  <!-- VIEW 2: PROJECT LIST -->
-  <div class="view" id="view-projects">
-    <div class="proj-header">
-      <div>
-        <div class="proj-title" id="proj-view-title">Projects</div>
-        <div class="proj-sub" id="proj-view-sub"></div>
-      </div>
-      <div class="proj-filters" id="status-filter-row">
-        <span class="filter-label">Status</span>
-        <span class="pill active" onclick="setStatusFilter('All',this)">All</span>
-        <span class="pill" onclick="setStatusFilter('Delivered',this)">Delivered</span>
-        <span class="pill" onclick="setStatusFilter('In Progress',this)">In Progress</span>
-        <span class="pill" onclick="setStatusFilter('To Be Started',this)">To Be Started</span>
+  <div id="loading-screen" class="loading-screen">
+    <div class="spin"></div>
+    <div class="load-txt" id="load-txt">Loading catalog data&hellip;</div>
+  </div>
+
+  <div class="view" id="v-dom">
+    <div class="sh">Business Domains</div>
+    <div class="dgrid" id="dgrid"></div>
+  </div>
+  <div class="view" id="v-proj">
+    <div class="ph">
+      <div><div class="ph-t" id="pvt">Projects</div><div class="ph-s" id="pvs"></div></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center" id="sfr">
+        <span class="fl">Status</span>
+        <span class="pill active" onclick="setSF('All',this)">All</span>
+        <span class="pill" onclick="setSF('Delivered',this)">Delivered</span>
+        <span class="pill" onclick="setSF('In Progress',this)">In Progress</span>
+        <span class="pill" onclick="setSF('To Be Started',this)">To Be Started</span>
       </div>
     </div>
-    <div class="table-wrap">
-      <table class="proj-table">
-        <thead><tr>
-          <th>Project Name</th><th>Status</th><th>Project Owner</th>
-          <th>Architecture</th><th>Start</th><th>Target End</th>
-          <th>Cost</th><th>Progress</th><th>Expected Result</th>
-        </tr></thead>
-        <tbody id="proj-tbody"></tbody>
-      </table>
-    </div>
+    <div class="tw"><table class="pt">
+      <thead><tr><th>Project Name</th><th>Status</th><th>Project Owner</th><th>Architecture</th><th>Start</th><th>Target End</th><th>Cost</th><th>Progress</th></tr></thead>
+      <tbody id="ptb"></tbody>
+    </table></div>
   </div>
-
-  <!-- VIEW 3: PROJECT DETAIL -->
-  <div class="view" id="view-detail">
-    <div class="back-btn" onclick="goBack()">
-      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-      Back to projects
-    </div>
-    <div class="detail-hero" id="d-hero"></div>
-    <div class="detail-grid">
-      <div class="det-main" id="d-main"></div>
-      <div class="det-side" id="d-side"></div>
-    </div>
+  <div class="view" id="v-det">
+    <div class="bb" onclick="goBack()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Back to projects</div>
+    <div class="dh" id="dhero"></div>
+    <div class="dg"><div class="dm" id="dmain"></div><div class="ds" id="dside"></div></div>
   </div>
-
 </div>
 
 <script>
-// ─── CONFIGURATION ─────────────────────────────────────────────────────────
-// Replace these URLs with your actual SharePoint direct download links
-// Format: https://yourcompany.sharepoint.com/:x:/s/yoursite/...?download=1
+// =============================================================================
+//  CONFIGURATION — paste your URL here, then save and re-upload index.html
+// =============================================================================
+
+// OPTION A — Single Excel file on SharePoint / Teams
+// Steps: Upload DE_Catalog.xlsx to SharePoint → Copy link → add ?download=1
+// Example: https://company.sharepoint.com/sites/mysite/Shared%20Documents/DE_Catalog.xlsx?download=1
+const EXCEL_URL = "";
+
+// OPTION B — Three separate CSV files on SharePoint / Teams
+// Steps: Upload each CSV → Copy link for each → add ?download=1 to each
+// Example: https://company.sharepoint.com/sites/mysite/Shared%20Documents/DOMAINS.csv?download=1
 const CSV_URLS = {
-  projects:  'https://technip.sharepoint.com/sites/DataPlatforms/Shared%20Documents/Documents%20%E2%86%92%20DE-Catalog-Data/PROJECTS.csv?download=1',
-  documents: 'https://technip.sharepoint.com/sites/DataPlatforms/Shared%20Documents/Documents%20%E2%86%92%20DE-Catalog-Data/PROJECTS.csv?download=1'
+  domains:   "",
+  projects:  "",
+  documents: ""
 };
-// PROJECTS.csv must include these columns (add ExpectedResult column for expected outcomes):
-// ProjectID, DomainName, ProjectName, Status, Architecture, ProjectOwner, DataOwner,
-// DataStewards, DETeamMembers, DataPlatformLead, ProjectDescription, UseCases,
-// StartDate, TargetEndDate, ActualEndDate, ProjectCost, ProgressPct, ExpectedResult, IsActive
-//
-// To use SharePoint, replace above with:
-// projects:  'https://technip.sharepoint.com/sites/DataPlatforms/Shared%20Documents/Documents%20%E2%86%92%20DE-Catalog-Data/PROJECTS.csv?download=1',
-// documents: 'https://technip.sharepoint.com/sites/DataPlatforms/Shared%20Documents/Documents%20%E2%86%92%20DE-Catalog-Data/DOCUMENTS.csv?download=1'
 
-// ─── DOMAIN DEFINITIONS (hardcoded as requested — all 17 domains always visible) ──
-const DOMAINS = [
-  {id:'D001',name:'Construction, Subcontracting & Comm.',owner:'Giuseppe Orlando',desc:'End-to-end data platform for construction project tracking, subcontractor management, and commercial performance analytics across all active sites.',color:'blue',accent:'#0070EF'},
-  {id:'D002',name:'Quality & HSES',owner:'Valentina Gabriel',desc:'Quality management and health, safety, environment & sustainability data platform for compliance monitoring and incident tracking.',color:'green',accent:'#A2C61C'},
-  {id:'D003',name:'Sales & Marketing',owner:'Alessandro Bettoni',desc:'Customer analytics, campaign attribution, and sales pipeline intelligence to drive commercial growth and marketing effectiveness.',color:'teal',accent:'#3D97B7'},
-  {id:'D004',name:'Procurement',owner:'Stéphanie Dupont',desc:'Supplier performance, purchase order analytics, and spend intelligence platform for procurement optimisation and vendor management.',color:'coral',accent:'#EE7766'},
-  {id:'D005',name:'People & Culture',owner:'Daniel Bosman',desc:'Workforce analytics, attrition modelling, and HR operational data products for people team insights and workforce planning.',color:'amber',accent:'#FDC300'},
-  {id:'D006',name:'Digiteam',owner:'Jean-Marc Belloncle',desc:'Digital transformation project portfolio analytics and IT delivery performance tracking for the Digiteam organisation.',color:'navy',accent:'#004C84'},
-  {id:'D007',name:'Engineering & Process',owner:'Gauthier Hatt',desc:'Process engineering data integration and operational analytics for engineering performance monitoring and optimisation.',color:'teal',accent:'#80C7A0'},
-  {id:'D008',name:'Cost Control',owner:'Yann Guyot',desc:'Group-wide cost control analytics consolidating actuals, forecasts, and commitments for financial governance and reporting.',color:'amber',accent:'#FDC300'},
-  {id:'D009',name:'Finance, Real Estate & Facilities',owner:'Cédric Maret / Pierre Didier',desc:'Financial consolidation, real estate portfolio analytics, and facilities cost management across all business units.',color:'purple',accent:'#7C3AED'},
-  {id:'D010',name:'Legal',owner:'Alexandra Voegelin',desc:'Legal matter management analytics, contract obligation tracking, and compliance monitoring platform for the legal function.',color:'grey',accent:'#64748B'},
-  {id:'D011',name:'Workload',owner:'Yves Kervern',desc:'Resource and workload analytics for capacity planning, utilisation tracking, and workforce allocation optimisation.',color:'teal',accent:'#3D97B7'},
-  {id:'D012',name:'Manufacturing',owner:'Timothee Lefebvre',desc:'Manufacturing operations data platform tracking production KPIs, quality defects, and OEE metrics across all facilities.',color:'coral',accent:'#EE7766'},
-  {id:'D013',name:'Estimating',owner:'Laurent Meunier',desc:'Estimating accuracy and tender analytics platform tracking bid margins, win/loss rates, and estimate vs outturn performance.',color:'lime',accent:'#A2C61C'},
-  {id:'D014',name:'Planning',owner:'Vincenzo Erra',desc:'Project schedule analytics and planning performance platform tracking programme adherence and critical path management.',color:'blue',accent:'#0070EF'},
-  {id:'D015',name:'Communication',owner:'Yann Vialet',desc:'Internal and external communication analytics tracking stakeholder engagement, campaign effectiveness, and content performance.',color:'grey',accent:'#64748B'},
-  {id:'D016',name:'ESG',owner:'Sandra Melki',desc:'Environmental, social and governance data platform tracking sustainability KPIs, carbon footprint, and CSRD compliance reporting.',color:'green',accent:'#A2C61C'},
-  {id:'D017',name:'Technology & Innovation',owner:'Sabrina Amani',desc:'Technology portfolio analytics and innovation pipeline tracking for digital and R&D investment governance.',color:'coral',accent:'#EE7766'},
-];
+// =============================================================================
+//  HOW THIS WORKS
+//  1. If EXCEL_URL is set → reads Excel using SheetJS (reads all 3 sheets)
+//  2. Else if all 3 CSV_URLS are set → reads the 3 CSVs directly
+//  3. If neither is set → shows a setup guide with clear instructions
+//  No data is hardcoded. Everything comes from your file.
+// =============================================================================
 
-// ─── STATE ──────────────────────────────────────────────────────────────────
-let projects = [], documents = [];
-let currentDomain = null, currentProject = null;
-let domainFilter = 'All', statusFilter = 'All';
+let DOM=[], PRJ=[], DOC=[], curDom=null, domF='All', stF='All';
 
-// ─── CSV PARSER ─────────────────────────────────────────────────────────────
-function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  const headers = lines[0].split(',').map(h => h.replace(/^\uFEFF/, '').replace(/^"|"$/g, '').trim());
-  return lines.slice(1).filter(l => l.trim()).map(line => {
-    const vals = [], rx = /("([^"]|"")*"|[^,]*)(,|$)/g;
-    let m, i = 0;
-    while ((m = rx.exec(line)) !== null) {
-      vals.push(m[1].replace(/^"|"$/g, '').replace(/""/g, '"').trim());
-      if (m[3] === '') break;
+async function init(){
+  setLoad('Connecting to data source\u2026');
+  try{
+    if(EXCEL_URL.trim()){
+      setLoad('Reading Excel file\u2026');
+      await loadExcel();
+    } else if(CSV_URLS.domains.trim() && CSV_URLS.projects.trim() && CSV_URLS.documents.trim()){
+      setLoad('Reading CSV files\u2026');
+      await loadCSVs();
+    } else {
+      showSetupGuide();
+      return;
     }
-    return Object.fromEntries(headers.map((h, i) => [h, vals[i] || '']));
-  });
-}
-
-// ─── FETCH DATA ──────────────────────────────────────────────────────────────
-async function loadData() {
-  // Always load sample data immediately so the report works with zero setup
-  loadSampleData();
-
-  // Then silently try to fetch live CSVs from SharePoint/data folder
-  // If they exist and are valid, they will override the sample data
-  try {
-    const isSharePoint = CSV_URLS.projects.startsWith('http');
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    const [pRes, dRes] = await Promise.all([
-      fetch(CSV_URLS.projects, {signal: controller.signal}),
-      fetch(CSV_URLS.documents, {signal: controller.signal})
-    ]);
-    clearTimeout(timeout);
-    if (!pRes.ok || !dRes.ok) throw new Error('CSV fetch failed');
-    const pText = await pRes.text();
-    const dText = await dRes.text();
-    if (!pText.includes('ProjectID') && !pText.includes('ProjectName')) throw new Error('Not a valid projects CSV');
-    const liveProjets  = parseCSV(pText).filter(p => p.IsActive !== 'No');
-    const liveDocs = parseCSV(dText);
-    if (liveProjets.length === 0) throw new Error('No projects in CSV');
-    projects  = liveProjets;
-    documents = liveDocs;
-    document.getElementById('last-updated').textContent = 'Live · ' + new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-    updateKPIs(projects);
-    buildDomainPills();
+    if(!PRJ.length) throw new Error('No projects found in the data file. Check the PROJECTS sheet/file has data.');
+    hideLoad();
+    setBadge('Live \u00b7 '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}), 'ok');
+    document.getElementById('kdom').textContent = DOM.length;
+    updateKPIs(PRJ);
+    buildPills();
+    showView('v-dom');
     renderDomains();
-    console.log('Live CSV data loaded:', projects.length, 'projects');
-  } catch(e) {
-    // Sample data already showing — nothing to do
-    console.info('Using embedded sample data. To connect live data, update CSV_URLS in the script.');
+  } catch(err){
+    hideLoad();
+    showError(err);
   }
 }
 
-function loadSampleData() {
-  projects = [
-    {ProjectID:'P001',DomainName:'Construction, Subcontracting & Comm.',ProjectName:'Project Cost Control Hub',Status:'Delivered',Architecture:'Lakehouse · Azure Synapse',ProjectOwner:'Luca Ferrari',DataOwner:'Maria Rossi',DataStewards:'Anna Bianchi, Tom Cruz',DETeamMembers:'Priya Sharma, Ravi Kumar',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Centralised cost control data platform ingesting actuals, forecasts and commitments from 8 source systems. Enables real-time budget vs actuals reporting for project managers across all active construction sites.',ExpectedResult:'Real-time budget visibility reducing month-end close from 5 days to same-day, saving 120 finance hours per month',UseCases:'Budget vs actuals by project | Cost-at-completion forecasting | Subcontractor payment tracking | Earned value management (EVM) | Monthly financial close automation',StartDate:'2024-01-01',TargetEndDate:'2024-08-31',ActualEndDate:'2024-08-31',ProjectCost:'120000',ProgressPct:'100',ExpectedResult:'Single source of truth for project financials reducing monthly close time by 60% and eliminating manual reconciliation across 8 source systems.',ExpectedResult:'Real-time budget vs actuals visibility for all project managers, reducing monthly close time by 3 days',IsActive:'Yes'},
-    {ProjectID:'P002',DomainName:'Construction, Subcontracting & Comm.',ProjectName:'Subcontractor Performance Analytics',Status:'Delivered',Architecture:'Medallion · dbt + Snowflake',ProjectOwner:'Sophie Laurent',DataOwner:'Jean Dupont',DataStewards:'Karl Weber',DETeamMembers:'Arjun Mehta, Neha Joshi',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Subcontractor scorecard platform aggregating contract compliance, delay events, quality scores and payment data to rank and manage vendor performance across all construction projects.',ExpectedResult:'30% reduction in subcontractor disputes through proactive performance management and data-driven contract decisions',UseCases:'Subcontractor scorecards and rankings | Delay root cause analysis | Contract compliance tracking | Payment milestone dashboards | Penalty and bonus calculation automation',StartDate:'2024-03-01',TargetEndDate:'2024-10-31',ActualEndDate:'2024-10-31',ProjectCost:'85000',ProgressPct:'100',ExpectedResult:'Automated subcontractor performance scoring enabling faster contract decisions and a 20% reduction in payment disputes.',ExpectedResult:'Automated vendor scorecards replacing manual spreadsheets, improving subcontractor management efficiency by 40%',IsActive:'Yes'},
-    {ProjectID:'P003',DomainName:'Construction, Subcontracting & Comm.',ProjectName:'Site Progress Real-time Tracker',Status:'In Progress',Architecture:'Streaming · Kafka + Spark',ProjectOwner:'Marco Vitale',DataOwner:'Claire Bernard',DataStewards:'Luis Gomez, Aisha Nkosi',DETeamMembers:'Vikram Singh, Dev Patel',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Real-time site progress streaming platform ingesting IoT sensor data, daily logs and inspection reports to surface live construction progress against planned schedules for site managers.',ExpectedResult:'Site managers save 2 hours/day on manual progress reporting; 15% improvement in schedule adherence detection',UseCases:'Live site progress vs plan | Safety incident early warning | Daily log aggregation and reporting | Inspection defect trending | Labour productivity tracking',StartDate:'2024-11-01',TargetEndDate:'2025-06-30',ActualEndDate:'',ProjectCost:'150000',ProgressPct:'60',ExpectedResult:'Real-time site visibility across all active projects enabling same-day issue detection and a 30% reduction in schedule overruns.',ExpectedResult:'Live site progress dashboard reducing daily reporting effort by 2 hours per site manager',IsActive:'Yes'},
-    {ProjectID:'P004',DomainName:'Construction, Subcontracting & Comm.',ProjectName:'Commercial Risk Dashboard',Status:'In Progress',Architecture:'Batch · Azure ADF',ProjectOwner:'Elena Moreau',DataOwner:'Hans Mueller',DataStewards:'Yuki Tanaka',DETeamMembers:'Meera Iyer, Siddharth Rao',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Commercial risk intelligence platform consolidating variation orders, claim events and contractual exposure data to provide early warning signals for commercial teams on active projects.',UseCases:'Variation order tracking and trend analysis | Claim exposure monitoring | Contingency utilisation alerts | Commercial close-out readiness scoring | Risk-adjusted forecasting',StartDate:'2025-02-01',TargetEndDate:'2025-07-31',ActualEndDate:'',ProjectCost:'95000',ProgressPct:'35',ExpectedResult:'Early commercial risk detection reducing claim exposure by 25% through proactive intervention before risks escalate.',ExpectedResult:'Early commercial risk signals reducing undetected claim exposure by 60% across active projects',IsActive:'Yes'},
-    {ProjectID:'P005',DomainName:'Construction, Subcontracting & Comm.',ProjectName:'Document Control Analytics',Status:'Delivered',Architecture:'Batch · Microsoft Fabric',ProjectOwner:'Pierre Morel',DataOwner:'Sofia Esposito',DataStewards:'Ben Adeyemi',DETeamMembers:'Kavya Reddy, Rahul Gupta',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Document management analytics layer ingesting EDMS metadata to track drawing register status, RFI response times and document approval cycle compliance across all active construction projects.',UseCases:'Drawing register status tracking | RFI cycle time analysis | Approval workflow compliance | Document handover readiness | Transmittal tracking and escalation',StartDate:'2024-05-01',TargetEndDate:'2024-11-30',ActualEndDate:'2024-11-30',ProjectCost:'60000',ProgressPct:'100',ExpectedResult:'Automated document compliance tracking reducing RFI response times by 40% and improving handover quality scores.',ExpectedResult:'Single source of truth for all project documents, reducing RFI response time by 30%',IsActive:'Yes'},
-    {ProjectID:'P006',DomainName:'Construction, Subcontracting & Comm.',ProjectName:'Project Closeout Data Platform',Status:'Delivered',Architecture:'Medallion · Databricks',ProjectOwner:'Thomas Klein',DataOwner:'Isabelle Leroy',DataStewards:'Ahmad Hassan',DETeamMembers:'Ananya Nair, Arjun Mehta',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'End-of-project closeout data platform aggregating final cost, punch list, warranty and handover documentation status for systematic and auditable project closeout management.',UseCases:'Punch list completion tracking | Warranty obligation register | Final account reconciliation | Lessons learned repository | Handover certificate automation',StartDate:'2024-07-01',TargetEndDate:'2025-01-31',ActualEndDate:'2025-01-31',ProjectCost:'75000',ProgressPct:'100',ExpectedResult:'Streamlined project closeout process reducing average closeout duration by 50% with full audit trail for client handover.',ExpectedResult:'Systematic closeout process reducing average project closeout duration from 6 months to 8 weeks',IsActive:'Yes'},
-    {ProjectID:'P007',DomainName:'Construction, Subcontracting & Comm.',ProjectName:'Tender Analytics Platform',Status:'To Be Started',Architecture:'Lakehouse · Microsoft Fabric',ProjectOwner:'Giulia Romano',DataOwner:'TBD',DataStewards:'TBD',DETeamMembers:'TBD',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Tender analytics platform to track bid pipeline, win/loss rates, margin at tender vs outturn and competitor benchmarking for the business development and estimating functions.',UseCases:'Bid pipeline tracking and conversion rates | Win/loss rate analysis by client and sector | Tender margin benchmarking vs outturn | Competitor pattern detection | Bid resource planning',StartDate:'2025-09-01',TargetEndDate:'2026-02-28',ActualEndDate:'',ProjectCost:'110000',ProgressPct:'0',ExpectedResult:'Improved bid win rate through data-driven estimating and competitor benchmarking, targeting a 5% increase in margin at tender.',ExpectedResult:'Data-driven bid strategy increasing tender win rate by 15% and improving margin accuracy',IsActive:'Yes'},
-    {ProjectID:'P008',DomainName:'Finance, Real Estate & Facilities',ProjectName:'Finance Data Warehouse',Status:'Delivered',Architecture:'Lakehouse · Azure Synapse',ProjectOwner:'Arjun Mehta',DataOwner:'Priya Sharma',DataStewards:'Ravi Kumar',DETeamMembers:'Priya Sharma, Ravi Kumar, Neha Joshi',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Centralised financial data warehouse consolidating GL, AP, AR and payroll data from 6 source systems. Enables self-serve analytics for finance teams across 3 regions with full audit trail.',ExpectedResult:'Single source of financial truth eliminating 15 manual Excel reports, reducing reporting cycle from 3 days to 4 hours',UseCases:'Monthly P&L and balance sheet reporting | Variance analysis across cost centres | Audit trail and regulatory reconciliation | Budget vs actuals dashboards in Power BI | Intercompany elimination reporting',StartDate:'2024-01-01',TargetEndDate:'2024-08-31',ActualEndDate:'2024-08-31',ProjectCost:'180000',ProgressPct:'100',ExpectedResult:'Self-serve financial analytics for all finance teams eliminating 80% of manual reporting and enabling real-time decision-making.',ExpectedResult:'Self-serve financial analytics for 200+ finance users, eliminating 80% of manual reporting requests',IsActive:'Yes'},
-    {ProjectID:'P009',DomainName:'Finance, Real Estate & Facilities',ProjectName:'Real Estate Portfolio Analytics',Status:'Delivered',Architecture:'Medallion · dbt',ProjectOwner:'Kavya Reddy',DataOwner:'Dev Patel',DataStewards:'Meera Iyer',DETeamMembers:'Dev Patel, Meera Iyer',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Real estate portfolio analytics platform tracking lease expiry, occupancy rates and facilities cost per sqm across 40+ properties in the European portfolio for asset management.',UseCases:'Lease expiry calendar and renewal alerts | Occupancy rate trending by property | Facilities cost benchmarking per sqm | Capital expenditure planning | Service charge reconciliation',StartDate:'2024-04-01',TargetEndDate:'2024-10-31',ActualEndDate:'2024-10-31',ProjectCost:'95000',ProgressPct:'100',ExpectedResult:'Comprehensive real estate portfolio visibility enabling proactive lease management and a 15% reduction in facilities costs.',ExpectedResult:'Proactive lease management preventing missed renewals across 40+ properties, saving €500K annually',IsActive:'Yes'},
-    {ProjectID:'P010',DomainName:'Finance, Real Estate & Facilities',ProjectName:'Finance Cost Allocation Engine',Status:'In Progress',Architecture:'Medallion · dbt + Snowflake',ProjectOwner:'Ravi Kumar',DataOwner:'Arjun Mehta',DataStewards:'Priya Sharma',DETeamMembers:'Ravi Kumar, Kavya Reddy',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Automated cost allocation engine distributing shared services costs across business units using configurable allocation rules and actuals data from the Finance Data Warehouse.',UseCases:'Business unit P&L with fully allocated costs | Shared services cost transparency | What-if cost modelling scenarios | Monthly close automation | Recharge invoice generation',StartDate:'2025-02-01',TargetEndDate:'2025-06-30',ActualEndDate:'',ProjectCost:'120000',ProgressPct:'50',ExpectedResult:'Fully automated cost allocation eliminating 3 days of manual effort per monthly close and improving allocation accuracy.',ExpectedResult:'Automated monthly cost allocations reducing finance close effort by 4 days per period',IsActive:'Yes'},
-    {ProjectID:'P011',DomainName:'Finance, Real Estate & Facilities',ProjectName:'Regulatory Reporting Pipeline',Status:'In Progress',Architecture:'Batch · Azure ADF',ProjectOwner:'Meera Iyer',DataOwner:'Ravi Kumar',DataStewards:'TBD',DETeamMembers:'Meera Iyer, Siddharth Rao',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Automated regulatory reporting pipeline replacing manual Excel submissions with governed, auditable batch pipelines for all statutory compliance submissions across jurisdictions.',UseCases:'Statutory filing automation | Regulatory submission packaging | Audit-ready data lineage | Compliance SLA tracking | Multi-jurisdiction report generation',StartDate:'2025-03-01',TargetEndDate:'2025-09-30',ActualEndDate:'',ProjectCost:'140000',ProgressPct:'25',ExpectedResult:'Automated regulatory submissions reducing compliance risk and eliminating manual effort on statutory filings across all jurisdictions.',ExpectedResult:'Automated regulatory submissions replacing 12 manual reports, eliminating compliance risk',IsActive:'Yes'},
-    {ProjectID:'P012',DomainName:'Finance, Real Estate & Facilities',ProjectName:'Finance Controls Automation',Status:'To Be Started',Architecture:'TBD',ProjectOwner:'TBD',DataOwner:'TBD',DataStewards:'TBD',DETeamMembers:'TBD',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Automated internal controls monitoring platform to flag control exceptions, segregation of duty violations and reconciliation breaks in near real-time for the internal audit function.',UseCases:'SOD violation detection and alerting | Reconciliation break identification | Control exception dashboard | Audit evidence packaging | Risk rating automation',StartDate:'2025-10-01',TargetEndDate:'2026-03-31',ActualEndDate:'',ProjectCost:'100000',ProgressPct:'0',ExpectedResult:'Near real-time controls monitoring reducing time to detect control exceptions from weeks to hours, improving audit readiness.',ExpectedResult:'Real-time controls monitoring reducing audit findings by 50% and internal audit effort by 30%',IsActive:'Yes'},
-    {ProjectID:'P013',DomainName:'Sales & Marketing',ProjectName:'Marketing Attribution Pipeline',Status:'Delivered',Architecture:'Lambda · Databricks',ProjectOwner:'Siddharth Rao',DataOwner:'Neha Joshi',DataStewards:'Vikram Singh',DETeamMembers:'Neha Joshi, Siddharth Rao',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Multi-touch attribution pipeline processing 50M+ daily events from web, CRM and ad platforms. Builds unified customer journey datasets for the marketing analytics team to drive spend decisions.',ExpectedResult:'20% improvement in marketing ROI through data-driven budget reallocation across channels',UseCases:'Campaign ROI and channel attribution | Customer journey funnel analysis | Ad spend optimisation signals | Marketing mix modelling inputs | Attribution model comparison',StartDate:'2024-03-01',TargetEndDate:'2024-09-30',ActualEndDate:'2024-09-30',ProjectCost:'95000',ProgressPct:'100',ExpectedResult:'Data-driven marketing spend optimisation targeting a 15% improvement in campaign ROI through accurate multi-touch attribution.',ExpectedResult:'Accurate multi-touch attribution enabling 20% improvement in marketing spend efficiency',IsActive:'Yes'},
-    {ProjectID:'P014',DomainName:'Sales & Marketing',ProjectName:'Customer 360 Data Product',Status:'Delivered',Architecture:'Data Mesh · Microsoft Fabric',ProjectOwner:'Priya Sharma',DataOwner:'Arjun Mehta',DataStewards:'Kavya Reddy',DETeamMembers:'Priya Sharma, Arjun Mehta, Kavya Reddy',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Self-serve customer data product exposing a unified 360 view across sales, support and product usage built as a data mesh domain product on Microsoft Fabric for all customer-facing teams.',UseCases:'Unified customer profile for CRM teams | Churn propensity modelling input | Customer lifetime value calculation | Support ticket root cause analysis | Cross-sell opportunity identification',StartDate:'2024-05-01',TargetEndDate:'2024-12-31',ActualEndDate:'2024-12-31',ProjectCost:'130000',ProgressPct:'100',ExpectedResult:'Unified customer view enabling personalised engagement and targeting a 10% improvement in customer retention rates.',ExpectedResult:'Unified customer profile enabling personalisation across all channels, improving NPS by 10 points',IsActive:'Yes'},
-    {ProjectID:'P015',DomainName:'Sales & Marketing',ProjectName:'Campaign Performance Hub',Status:'In Progress',Architecture:'Lakehouse · Microsoft Fabric',ProjectOwner:'Neha Joshi',DataOwner:'Siddharth Rao',DataStewards:'Dev Patel',DETeamMembers:'Neha Joshi, Siddharth Rao, Arjun Mehta',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Unified campaign performance hub aggregating data from 12 ad platforms, email tools and social channels into a single analytics layer for marketing teams to monitor and optimise campaigns.',UseCases:'Cross-channel campaign comparison | Audience overlap analysis | Real-time spend pacing alerts | Creative performance benchmarking | Campaign attribution by touchpoint',StartDate:'2025-01-01',TargetEndDate:'2025-07-31',ActualEndDate:'',ProjectCost:'110000',ProgressPct:'35',ExpectedResult:'Cross-channel campaign optimisation enabling real-time budget reallocation and a projected 20% improvement in cost per acquisition.',ExpectedResult:'Single campaign dashboard replacing 12 platform logins, saving marketing team 5 hours per week',IsActive:'Yes'},
-    {ProjectID:'P016',DomainName:'Procurement',ProjectName:'Vendor Analytics Platform',Status:'Delivered',Architecture:'Batch · Azure ADF',ProjectOwner:'Vikram Singh',DataOwner:'Priya Sharma',DataStewards:'Ananya Nair',DETeamMembers:'Vikram Singh, Priya Sharma',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Vendor performance analytics platform consolidating purchase orders, delivery data and quality metrics to score and rank supplier performance across all procurement categories.',ExpectedResult:'12% cost savings identified through vendor renegotiations backed by data; 95% on-time delivery achieved with top-tier suppliers',UseCases:'Vendor scorecards and performance rankings | On-time delivery trend analysis | Purchase order anomaly detection | Cost savings opportunity identification | Preferred supplier compliance tracking',StartDate:'2024-06-01',TargetEndDate:'2024-11-30',ActualEndDate:'2024-11-30',ProjectCost:'75000',ProgressPct:'100',ExpectedResult:'Objective vendor performance scoring enabling strategic supplier consolidation and targeting 8% procurement cost reduction.',ExpectedResult:'Objective vendor scorecards enabling better supplier negotiations and 15% cost reduction',IsActive:'Yes'},
-    {ProjectID:'P017',DomainName:'Procurement',ProjectName:'Spend Intelligence Platform',Status:'Delivered',Architecture:'Medallion · Snowflake',ProjectOwner:'Ananya Nair',DataOwner:'Dev Patel',DataStewards:'Rahul Gupta',DETeamMembers:'Ananya Nair, Dev Patel',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Category spend intelligence platform classifying and analysing procurement spend across all suppliers and cost categories with savings tracking and contract leakage detection capabilities.',UseCases:'Spend analysis by category and supplier | Contract leakage detection | Savings tracker and pipeline | Preferred supplier compliance reporting | Maverick spend identification',StartDate:'2024-08-01',TargetEndDate:'2025-02-28',ActualEndDate:'2025-02-28',ProjectCost:'90000',ProgressPct:'100',ExpectedResult:'Full spend visibility enabling category strategies that target 10% savings on addressable spend through better negotiation leverage.',ExpectedResult:'Category spend transparency identifying €2M in savings opportunities in first year',IsActive:'Yes'},
-    {ProjectID:'P018',DomainName:'Procurement',ProjectName:'Supplier Risk Monitor',Status:'In Progress',Architecture:'Streaming · Microsoft Fabric',ProjectOwner:'Dev Patel',DataOwner:'Vikram Singh',DataStewards:'TBD',DETeamMembers:'Dev Patel, Rahul Gupta',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Supplier risk monitoring platform ingesting financial health data, news feeds and compliance signals to provide early warning of supplier risk events before they impact supply chain.',UseCases:'Supplier financial health scoring | News-based risk signal detection | Compliance certification tracking | Supply disruption early warning | Supplier risk dashboard for procurement managers',StartDate:'2025-02-01',TargetEndDate:'2025-08-31',ActualEndDate:'',ProjectCost:'85000',ProgressPct:'40',ExpectedResult:'Proactive supplier risk management reducing supply disruption incidents by 40% through early warning and contingency planning.',ExpectedResult:'Proactive supplier risk alerts providing 30-day advance warning before supply disruptions',IsActive:'Yes'},
-    {ProjectID:'P019',DomainName:'People & Culture',ProjectName:'Payroll Reconciliation Pipeline',Status:'Delivered',Architecture:'Batch · Azure Synapse',ProjectOwner:'Meera Iyer',DataOwner:'Arjun Mehta',DataStewards:'Priya Sharma',DETeamMembers:'Meera Iyer, Arjun Mehta',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Automated payroll reconciliation pipeline validating payroll runs against HR master data, flagging anomalies and producing audit-ready reconciliation reports for each monthly pay cycle.',ExpectedResult:'Zero payroll errors in production; 8 hours of manual reconciliation replaced with automated exception-only review',UseCases:'Monthly payroll variance detection | Headcount vs payroll reconciliation | Leave and benefit accrual validation | Statutory compliance reporting | Payroll audit trail generation',StartDate:'2024-03-01',TargetEndDate:'2024-07-31',ActualEndDate:'2024-07-31',ProjectCost:'65000',ProgressPct:'100',ExpectedResult:'Zero-defect monthly payroll with automated exception handling reducing payroll errors by 95% and audit preparation time by 70%.',ExpectedResult:'Zero-error payroll reconciliation replacing 3-day manual process with automated overnight run',IsActive:'Yes'},
-    {ProjectID:'P020',DomainName:'People & Culture',ProjectName:'HR Attrition Analytics',Status:'In Progress',Architecture:'Medallion · dbt + Snowflake',ProjectOwner:'Rahul Gupta',DataOwner:'Meera Iyer',DataStewards:'Kavya Reddy',DETeamMembers:'Meera Iyer, Rahul Gupta',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'People analytics platform building a medallion architecture on Snowflake to surface attrition risk, hiring funnel metrics and workforce planning insights for HR business partners.',UseCases:'Attrition risk scoring by department and role | Hiring funnel conversion analysis | Headcount planning and forecast | Diversity & inclusion metrics | Exit interview trend analysis',StartDate:'2025-01-01',TargetEndDate:'2025-05-31',ActualEndDate:'',ProjectCost:'80000',ProgressPct:'40',ExpectedResult:'Predictive attrition model enabling HR to intervene 3 months earlier, targeting a 15% reduction in regrettable attrition.',ExpectedResult:'Predictive attrition model enabling proactive retention, reducing voluntary turnover by 20%',IsActive:'Yes'},
-    {ProjectID:'P021',DomainName:'Engineering & Process',ProjectName:'Engineering Process Analytics',Status:'Delivered',Architecture:'Medallion · Databricks',ProjectOwner:'Ananya Nair',DataOwner:'Dev Patel',DataStewards:'Siddharth Rao',DETeamMembers:'Ananya Nair, Dev Patel',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Engineering process analytics platform integrating design tool outputs, BIM model metadata and change management data to track engineering productivity and design change impact across projects.',UseCases:'Design change impact analysis | Engineering productivity metrics | BIM model version tracking | RFI and technical query analytics | Engineering delivery milestone tracking',StartDate:'2024-08-01',TargetEndDate:'2025-01-31',ActualEndDate:'2025-01-31',ProjectCost:'85000',ProgressPct:'100',ExpectedResult:'Engineering productivity benchmarking enabling 20% reduction in rework through early design change detection and impact analysis.',ExpectedResult:'Engineering productivity metrics enabling 15% improvement in design delivery speed',IsActive:'Yes'},
-    {ProjectID:'P022',DomainName:'ESG',ProjectName:'ESG Reporting Platform',Status:'Delivered',Architecture:'Batch · Microsoft Fabric',ProjectOwner:'Vikram Singh',DataOwner:'Ananya Nair',DataStewards:'Meera Iyer',DETeamMembers:'Vikram Singh, Ananya Nair, Meera Iyer',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'ESG data platform consolidating carbon emissions, energy consumption, water usage and social metrics from all business units to support CSRD and voluntary ESG reporting requirements.',ExpectedResult:'CSRD-compliant reporting delivered in 2 days vs 6 weeks manually; full audit trail for all sustainability disclosures',UseCases:'Scope 1/2/3 emissions tracking | CSRD disclosure data packaging | Social metrics aggregation | ESG target vs actuals dashboard | GHG intensity calculation by business unit',StartDate:'2024-06-01',TargetEndDate:'2024-12-31',ActualEndDate:'2024-12-31',ProjectCost:'120000',ProgressPct:'100',ExpectedResult:'CSRD-compliant ESG reporting with automated data collection, reducing reporting effort by 75% and ensuring regulatory compliance.',ExpectedResult:'Automated CSRD-ready ESG reporting replacing 6 weeks of manual data collection per year',IsActive:'Yes'},
-    {ProjectID:'P023',DomainName:'Quality & HSES',ProjectName:'Quality & HSES Analytics',Status:'Delivered',Architecture:'Medallion · Synapse',ProjectOwner:'Sophie Laurent',DataOwner:'Karl Weber',DataStewards:'Yuki Tanaka',DETeamMembers:'Sophie Laurent, Priya Sharma',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Quality and HSES analytics platform integrating inspection, incident and non-conformance data to drive continuous improvement and safety performance management across all sites.',UseCases:'Quality KPI dashboards by site | HSES incident frequency rate tracking | Non-conformance root cause analysis | Safety leading indicator monitoring | Regulatory compliance status reporting',StartDate:'2024-04-01',TargetEndDate:'2024-10-31',ActualEndDate:'2024-10-31',ProjectCost:'90000',ProgressPct:'100',ExpectedResult:'Proactive quality and safety management targeting a 25% reduction in non-conformances and zero lost-time incidents.',ExpectedResult:'Unified quality dashboard reducing incident response time by 40% across all sites',IsActive:'Yes'},
-    {ProjectID:'P024',DomainName:'Cost Control',ProjectName:'Cost Control Analytics Hub',Status:'In Progress',Architecture:'Lakehouse · Azure Synapse',ProjectOwner:'Yann Guyot',DataOwner:'Pierre Morel',DataStewards:'Thomas Klein',DETeamMembers:'Ravi Kumar, Vikram Singh',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Group cost control analytics hub providing consolidated view of actuals, commitments and forecasts across all projects and business units for CFO and finance leadership reporting.',UseCases:'Group-level cost dashboard for CFO | Forecast accuracy tracking | Cost-at-completion analytics | Budget reforecast workflow | Cross-project cost benchmarking',StartDate:'2025-01-01',TargetEndDate:'2025-09-30',ActualEndDate:'',ProjectCost:'160000',ProgressPct:'30',ExpectedResult:'Group-level cost intelligence enabling CFO to identify savings opportunities and improve forecast accuracy to within 3% of outturn.',ExpectedResult:'Group-level cost visibility enabling CFO to identify €5M in cross-project savings annually',IsActive:'Yes'},
+// ── EXCEL LOADER (SheetJS) ───────────────────────────────────────────────────
+async function loadExcel(){
+  const res = await fetch(EXCEL_URL, {cache:'no-cache'});
+  if(!res.ok) throw new Error(`Could not fetch Excel file (HTTP ${res.status}).\n\nCheck:\n• The URL is correct\n• The file is shared with "Anyone with the link"\n• You added ?download=1 at the end of the URL`);
+  const buf  = await res.arrayBuffer();
+  const wb   = XLSX.read(buf, {type:'array', cellDates:true});
 
-    {ProjectID:'P025',DomainName:'Digiteam',ProjectName:'IT Portfolio Analytics',Status:'In Progress',Architecture:'Lakehouse · Microsoft Fabric',ProjectOwner:'Jean-Marc Belloncle',DataOwner:'Sabrina Amani',DataStewards:'TBD',DETeamMembers:'Kavya Reddy, Siddharth Rao',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'IT portfolio analytics platform tracking digital transformation project delivery, budget utilisation and business value realisation across all active Digiteam initiatives.',UseCases:'Digital project portfolio dashboard | IT budget vs actuals tracking | Value realisation measurement | Resource utilisation by initiative | Programme dependency mapping',StartDate:'2025-01-01',TargetEndDate:'2025-09-30',ActualEndDate:'',ProjectCost:'95000',ProgressPct:'45',ExpectedResult:'Full digital portfolio visibility enabling better prioritisation and a 20% improvement in on-time IT project delivery.',ExpectedResult:'Digital portfolio dashboard enabling real-time tracking of all IT initiatives and benefits',IsActive:'Yes'},
-    {ProjectID:'P026',DomainName:'Digiteam',ProjectName:'Application Performance Monitor',Status:'Delivered',Architecture:'Streaming · Azure Event Hub',ProjectOwner:'Jean-Marc Belloncle',DataOwner:'Dev Patel',DataStewards:'Rahul Gupta',DETeamMembers:'Dev Patel, Rahul Gupta',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Real-time application performance monitoring data platform aggregating telemetry, error logs and user experience metrics from all business applications into a unified observability layer.',UseCases:'Application uptime and SLA tracking | Error rate trend analysis | User experience scoring | Incident root cause correlation | Capacity planning signals',StartDate:'2024-05-01',TargetEndDate:'2024-11-30',ActualEndDate:'2024-11-30',ProjectCost:'70000',ProgressPct:'100',ExpectedResult:'Proactive application performance management reducing mean time to resolution by 50% and improving user experience scores.',ExpectedResult:'Proactive application monitoring reducing MTTR by 50% and preventing unplanned outages',IsActive:'Yes'},
-    {ProjectID:'P027',DomainName:'Legal',ProjectName:'Contract Obligation Tracker',Status:'Delivered',Architecture:'Batch · Azure ADF',ProjectOwner:'Alexandra Voegelin',DataOwner:'Alexandra Voegelin',DataStewards:'TBD',DETeamMembers:'Meera Iyer, Ananya Nair',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Contract obligation tracking platform extracting key milestones, payment terms and compliance obligations from the contract management system to alert legal and commercial teams.',UseCases:'Contract milestone calendar and alerts | Payment obligation tracking | Compliance deadline management | Contract expiry and renewal pipeline | Dispute risk flagging',StartDate:'2024-06-01',TargetEndDate:'2024-12-31',ActualEndDate:'2024-12-31',ProjectCost:'55000',ProgressPct:'100',ExpectedResult:'Automated contract obligation tracking eliminating missed milestones and reducing legal exposure from overlooked contractual commitments.',ExpectedResult:'Zero missed contract milestones saving €1M+ in penalty exposure across active contracts',IsActive:'Yes'},
-    {ProjectID:'P028',DomainName:'Legal',ProjectName:'Legal Matter Analytics',Status:'To Be Started',Architecture:'Medallion · Snowflake',ProjectOwner:'Alexandra Voegelin',DataOwner:'TBD',DataStewards:'TBD',DETeamMembers:'TBD',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Legal matter management analytics platform providing visibility into active disputes, external counsel spend and legal risk exposure across all jurisdictions and business units.',UseCases:'Active matter portfolio dashboard | External counsel spend analysis | Legal risk heat map | Matter outcome tracking | Budget vs actuals by matter type',StartDate:'2025-08-01',TargetEndDate:'2026-01-31',ActualEndDate:'',ProjectCost:'80000',ProgressPct:'0',ExpectedResult:'Comprehensive legal matter visibility enabling better resource allocation and a 20% reduction in external counsel spend.',ExpectedResult:'Legal risk dashboard enabling 30% reduction in external counsel spend through better matter management',IsActive:'Yes'},
-    {ProjectID:'P029',DomainName:'Workload',ProjectName:'Resource Capacity Planning Platform',Status:'In Progress',Architecture:'Batch · Microsoft Fabric',ProjectOwner:'Yves Kervern',DataOwner:'Yves Kervern',DataStewards:'TBD',DETeamMembers:'Vikram Singh, Dev Patel',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Resource capacity planning data platform integrating project demand forecasts with workforce supply data to surface capacity gaps and over-allocation risks across all business units.',UseCases:'Capacity gap forecasting by skill | Over-allocation early warning | Bench utilisation tracking | Recruitment demand signals | Contractor vs permanent mix optimisation',StartDate:'2025-02-01',TargetEndDate:'2025-08-31',ActualEndDate:'',ProjectCost:'90000',ProgressPct:'55',ExpectedResult:'Capacity gap visibility enabling proactive recruitment and resource reallocation, reducing critical skill shortages by 40%.',ExpectedResult:'Capacity gap forecasting enabling hiring decisions 3 months earlier, reducing project delays',IsActive:'Yes'},
-    {ProjectID:'P030',DomainName:'Manufacturing',ProjectName:'Manufacturing OEE Platform',Status:'Delivered',Architecture:'Streaming · Kafka + Spark',ProjectOwner:'Timothee Lefebvre',DataOwner:'Timothee Lefebvre',DataStewards:'Ananya Nair',DETeamMembers:'Ananya Nair, Siddharth Rao',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Manufacturing operations data platform ingesting machine telemetry and production data to track OEE, quality defect rates and downtime root causes across all manufacturing facilities.',UseCases:'OEE tracking by machine and line | Quality defect rate trending | Downtime root cause analysis | Predictive maintenance signals | Production yield optimisation',StartDate:'2024-07-01',TargetEndDate:'2025-01-31',ActualEndDate:'2025-01-31',ProjectCost:'130000',ProgressPct:'100',ExpectedResult:'OEE improvement targeting 85% across all manufacturing lines through data-driven downtime reduction and quality improvement.',ExpectedResult:'OEE improvement from 72% to 85% through data-driven maintenance and quality interventions',IsActive:'Yes'},
-    {ProjectID:'P031',DomainName:'Manufacturing',ProjectName:'Supply Chain Integration Hub',Status:'In Progress',Architecture:'Medallion · Databricks',ProjectOwner:'Timothee Lefebvre',DataOwner:'Dev Patel',DataStewards:'TBD',DETeamMembers:'Dev Patel, Rahul Gupta',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Supply chain integration hub connecting supplier order management, inbound logistics and production scheduling data to optimise material flow and reduce production stoppages.',UseCases:'Material availability dashboard | Inbound logistics delay alerts | Production schedule impact analysis | Supplier lead time benchmarking | Inventory optimisation signals',StartDate:'2025-03-01',TargetEndDate:'2025-10-31',ActualEndDate:'',ProjectCost:'145000',ProgressPct:'20',ExpectedResult:'Seamless supply chain integration reducing production stoppages due to material shortages by 60% through predictive ordering.',ExpectedResult:'Integrated supply chain visibility reducing production stoppages by 25% through early material alerts',IsActive:'Yes'},
-    {ProjectID:'P032',DomainName:'Estimating',ProjectName:'Estimate vs Outturn Analytics',Status:'Delivered',Architecture:'Batch · Azure ADF',ProjectOwner:'Laurent Meunier',DataOwner:'Laurent Meunier',DataStewards:'Thomas Klein',DETeamMembers:'Priya Sharma, Ravi Kumar',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Estimate accuracy analytics platform comparing tender estimates against actual project outturns to identify systematic biases, improve estimating accuracy and inform future bid strategies.',UseCases:'Estimate vs outturn variance by trade | Systematic bias detection by estimator | Margin erosion root cause analysis | Historical benchmark database | Lessons learned integration',StartDate:'2024-09-01',TargetEndDate:'2025-02-28',ActualEndDate:'2025-02-28',ProjectCost:'65000',ProgressPct:'100',ExpectedResult:'Systematic estimating improvement targeting a 3% reduction in estimate-to-outturn variance through bias detection and correction.',ExpectedResult:'Systematic estimate accuracy improvement reducing tender margin erosion by 50% within 18 months',IsActive:'Yes'},
-    {ProjectID:'P033',DomainName:'Estimating',ProjectName:'Tender Cost Intelligence Platform',Status:'To Be Started',Architecture:'Lakehouse · Azure Synapse',ProjectOwner:'Laurent Meunier',DataOwner:'TBD',DataStewards:'TBD',DETeamMembers:'TBD',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Tender cost intelligence platform aggregating market rate data, subcontractor quotes and historical cost benchmarks to give estimating teams real-time market intelligence during bid preparation.',UseCases:'Market rate benchmarking by trade | Subcontractor quote database | Location-based cost indices | Inflation and escalation modelling | Competitive price intelligence',StartDate:'2025-10-01',TargetEndDate:'2026-04-30',ActualEndDate:'',ProjectCost:'110000',ProgressPct:'0',ExpectedResult:'Market intelligence-driven estimating improving bid competitiveness and targeting a 5% improvement in tender success rate.',ExpectedResult:'Market intelligence platform improving tender competitiveness and reducing bid preparation time by 30%',IsActive:'Yes'},
-    {ProjectID:'P034',DomainName:'Planning',ProjectName:'Programme Analytics Dashboard',Status:'Delivered',Architecture:'Batch · Microsoft Fabric',ProjectOwner:'Vincenzo Erra',DataOwner:'Vincenzo Erra',DataStewards:'Marco Vitale',DETeamMembers:'Arjun Mehta, Kavya Reddy',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Programme analytics dashboard integrating P6, MS Project and site progress data to give planning managers a single view of schedule performance, critical path status and delay risks.',UseCases:'Schedule performance index by project | Critical path delay analysis | Float consumption trending | Weather and productivity impact modelling | Programme-level milestone tracking',StartDate:'2024-10-01',TargetEndDate:'2025-03-31',ActualEndDate:'2025-03-31',ProjectCost:'80000',ProgressPct:'100',ExpectedResult:'Programme-level schedule transparency enabling proactive delay management and a 20% reduction in programme overruns.',ExpectedResult:'Programme-level schedule visibility enabling earlier delay detection and recovery planning',IsActive:'Yes'},
-    {ProjectID:'P035',DomainName:'Planning',ProjectName:'Delay Event Analytics',Status:'In Progress',Architecture:'Medallion · dbt + Snowflake',ProjectOwner:'Vincenzo Erra',DataOwner:'Claire Bernard',DataStewards:'TBD',DETeamMembers:'Vikram Singh, Ananya Nair',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Delay event analytics platform capturing and classifying all programme delay events to support EOT claims, entitlement analysis and proactive schedule recovery planning.',UseCases:'Delay event register and classification | EOT entitlement analysis | Concurrent delay analysis | Weather data integration | Delay cost quantification support',StartDate:'2025-04-01',TargetEndDate:'2025-10-31',ActualEndDate:'',ProjectCost:'95000',ProgressPct:'25',ExpectedResult:'Robust delay evidence base reducing EOT claim preparation time by 60% and strengthening entitlement positions.',ExpectedResult:'Structured delay event database supporting EOT claims worth €10M+ across active projects',IsActive:'Yes'},
-    {ProjectID:'P036',DomainName:'Communication',ProjectName:'Stakeholder Engagement Analytics',Status:'Delivered',Architecture:'Batch · Azure ADF',ProjectOwner:'Yann Vialet',DataOwner:'Yann Vialet',DataStewards:'TBD',DETeamMembers:'Neha Joshi, Siddharth Rao',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Stakeholder engagement analytics platform tracking communication activities, response rates and sentiment across all project stakeholders to support engagement strategy optimisation.',UseCases:'Stakeholder response rate tracking | Sentiment analysis on feedback | Communication channel effectiveness | Engagement activity calendar | Escalation pattern detection',StartDate:'2024-08-01',TargetEndDate:'2025-01-31',ActualEndDate:'2025-01-31',ProjectCost:'50000',ProgressPct:'100',ExpectedResult:'Data-driven stakeholder engagement improving response rates by 30% and enabling early identification of disengaged stakeholders.',ExpectedResult:'Data-driven stakeholder engagement improving community satisfaction scores by 25%',IsActive:'Yes'},
-    {ProjectID:'P037',DomainName:'Technology & Innovation',ProjectName:'Innovation Pipeline Tracker',Status:'In Progress',Architecture:'Medallion · Databricks',ProjectOwner:'Sabrina Amani',DataOwner:'Sabrina Amani',DataStewards:'TBD',DETeamMembers:'Dev Patel, Kavya Reddy',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'Innovation pipeline tracking platform managing the lifecycle of all technology and digital innovation initiatives from ideation through proof-of-concept to scaled deployment.',UseCases:'Innovation initiative portfolio dashboard | POC success rate tracking | R&D investment vs value tracking | Time-to-deployment benchmarking | Innovation team velocity metrics',StartDate:'2025-02-01',TargetEndDate:'2025-08-31',ActualEndDate:'',ProjectCost:'85000',ProgressPct:'50',ExpectedResult:'Innovation pipeline transparency enabling better resource allocation and faster time-to-deployment for high-value initiatives.',ExpectedResult:'Innovation pipeline visibility enabling 2x increase in ideas progressed to pilot stage',IsActive:'Yes'},
-    {ProjectID:'P038',DomainName:'Technology & Innovation',ProjectName:'AI & Automation Value Tracker',Status:'To Be Started',Architecture:'Lakehouse · Microsoft Fabric',ProjectOwner:'Sabrina Amani',DataOwner:'TBD',DataStewards:'TBD',DETeamMembers:'TBD',DataPlatformLead:'Gaurav Badhani',ProjectDescription:'AI and automation value tracking platform measuring productivity gains, cost savings and quality improvements from all deployed AI and process automation initiatives across the business.',UseCases:'AI initiative ROI measurement | Automation hours saved tracking | Quality improvement quantification | FTE equivalent savings calculation | Business case vs actuals comparison',StartDate:'2025-09-01',TargetEndDate:'2026-03-31',ActualEndDate:'',ProjectCost:'100000',ProgressPct:'0',ExpectedResult:'Quantified AI and automation ROI enabling data-driven investment decisions and demonstrating business value of digital initiatives.',ExpectedResult:'Quantified AI ROI enabling confident scaling of successful initiatives and stopping ineffective ones',IsActive:'Yes'},
-  ];
-
-  // Full document records for ALL 24 projects — 6 document types each = 144 rows
-  const docStatus = {
-    P001:[true,true,true,true,true,true],
-    P002:[true,true,true,true,true,false],
-    P003:[true,true,false,false,false,false],
-    P004:[true,false,false,false,false,false],
-    P005:[true,true,true,true,true,true],
-    P006:[true,true,true,true,true,true],
-    P007:[false,false,false,false,false,false],
-    P008:[true,true,true,true,true,true],
-    P009:[true,true,true,true,true,true],
-    P010:[true,true,false,false,false,false],
-    P011:[true,false,false,false,false,false],
-    P012:[false,false,false,false,false,false],
-    P013:[true,true,true,true,true,true],
-    P014:[true,true,true,true,true,true],
-    P015:[true,false,false,false,false,false],
-    P016:[true,true,true,true,true,true],
-    P017:[true,true,true,true,true,true],
-    P018:[true,false,false,false,false,false],
-    P019:[true,true,true,true,true,true],
-    P020:[true,true,false,false,false,false],
-    P021:[true,true,true,true,true,true],
-    P022:[true,true,true,true,true,true],
-    P023:[true,true,true,true,true,true],
-    P024:[true,false,false,false,false,false],
-
-    P025:[true,false,false,false,false,false],
-    P026:[true,true,true,true,true,true],
-    P027:[true,true,true,true,true,true],
-    P028:[false,false,false,false,false,false],
-    P029:[true,true,false,false,false,false],
-    P030:[true,true,true,true,true,true],
-    P031:[true,false,false,false,false,false],
-    P032:[true,true,true,true,true,true],
-    P033:[false,false,false,false,false,false],
-    P034:[true,true,true,true,true,true],
-    P035:[true,false,false,false,false,false],
-    P036:[true,true,true,true,true,false],
-    P037:[true,true,false,false,false,false],
-    P038:[false,false,false,false,false,false],
+  const toRows = (sheetName) => {
+    const ws = wb.Sheets[sheetName];
+    if(!ws) throw new Error(`Sheet "${sheetName}" not found in Excel file. Expected sheets: DOMAINS, PROJECTS, DOCUMENTS`);
+    return XLSX.utils.sheet_to_json(ws, {raw:false, defval:''});
   };
-  const docTypes = ['HLD / PARD','New Source Ingestion','Source Data Dictionary','DLDM/LLDM Data Modeling Document','Tech Specs','Operation Manual'];
-  documents = [];
-  Object.entries(docStatus).forEach(([pid, avails]) => {
-    avails.forEach((avail, i) => {
-      documents.push({ProjectID:pid, DocumentType:docTypes[i], DocumentStatus:avail?'Available':'Pending', DocumentLink:''});
-    });
+
+  DOM = toRows('DOMAINS').filter(r=>r.IsActive!=='No'&&r.DomainID);
+  PRJ = toRows('PROJECTS').filter(r=>r.IsActive!=='No'&&r.ProjectID);
+  DOC = toRows('DOCUMENTS').filter(r=>r.ProjectID&&r.DocumentType);
+}
+
+// ── CSV LOADER ───────────────────────────────────────────────────────────────
+async function loadCSVs(){
+  const fetchCSV = async (url,label) => {
+    const res = await fetch(url, {cache:'no-cache'});
+    if(!res.ok) throw new Error(`Could not fetch ${label} (HTTP ${res.status}).\n\nCheck the URL is correct and the file is shared with "Anyone with the link".`);
+    return parseCSV(await res.text());
+  };
+  [DOM, PRJ, DOC] = await Promise.all([
+    fetchCSV(CSV_URLS.domains,  'DOMAINS.csv'),
+    fetchCSV(CSV_URLS.projects, 'PROJECTS.csv'),
+    fetchCSV(CSV_URLS.documents,'DOCUMENTS.csv')
+  ]);
+  DOM = DOM.filter(r=>r.IsActive!=='No'&&r.DomainID);
+  PRJ = PRJ.filter(r=>r.IsActive!=='No'&&r.ProjectID);
+  DOC = DOC.filter(r=>r.ProjectID&&r.DocumentType);
+}
+
+function parseCSV(txt){
+  const lines = txt.replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim().split('\n');
+  if(lines.length<2) return [];
+  const headers = csvLine(lines[0]);
+  return lines.slice(1).filter(l=>l.trim()).map(l=>{
+    const vals=csvLine(l); const o={};
+    headers.forEach((h,i)=>o[h]=(vals[i]||'').trim());
+    return o;
   });
-
-  document.getElementById('last-updated').textContent = 'Sample Data · ' + new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-  updateKPIs(projects);
-  buildDomainPills();
-  renderDomains();
+}
+function csvLine(line){
+  const r=[]; let cur='',q=false,i=0;
+  while(i<line.length){
+    const c=line[i];
+    if(c==='"'){if(q&&line[i+1]==='"'){cur+='"';i+=2;continue}q=!q;i++;continue}
+    if(c===','&&!q){r.push(cur.trim());cur='';i++;continue}
+    cur+=c;i++;
+  }
+  r.push(cur.trim());return r;
 }
 
-// ─── KPI UPDATE ──────────────────────────────────────────────────────────────
-function updateKPIs(projs) {
-  const del = projs.filter(p=>p.Status==='Delivered').length;
-  const prg = projs.filter(p=>p.Status==='In Progress').length;
-  const pln = projs.filter(p=>p.Status==='To Be Started').length;
-  document.getElementById('k-total').textContent = projs.length;
-  document.getElementById('k-total-sub').textContent = `across ${DOMAINS.filter(d=>projs.some(p=>p.DomainName===d.name)).length} active domains`;
-  document.getElementById('k-del').textContent = del;
-  document.getElementById('k-prg').textContent = prg;
-  document.getElementById('k-pln').textContent = pln;
+// ── SETUP GUIDE ──────────────────────────────────────────────────────────────
+function showSetupGuide(){
+  hideLoad();
+  setBadge('Setup required','err');
+  showView('v-dom');
+  document.getElementById('dgrid').innerHTML = `
+    <div style="grid-column:1/-1;background:#fff;border:1px solid var(--bdr);border-radius:16px;padding:32px;box-shadow:var(--sh);max-width:780px">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px">One-time setup required</div>
+      <div style="font-size:13px;color:var(--mut);margin-bottom:24px">Connect your SharePoint data source by following the steps below, then update index.html with your URL.</div>
+
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div style="border:1px solid var(--dbr);border-radius:12px;padding:20px;background:var(--dbg)">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--dtx);margin-bottom:12px;font-size:14px">Option A &mdash; Single Excel file (recommended)</div>
+          <ol style="font-size:13px;color:#065F46;padding-left:20px;display:flex;flex-direction:column;gap:8px">
+            <li>Upload <strong>DE_Catalog.xlsx</strong> to your SharePoint site or Teams channel Files tab</li>
+            <li>Right-click the file &rarr; <strong>Copy link</strong></li>
+            <li>Open <strong>index.html</strong> in Notepad / VS Code</li>
+            <li>Find: <code style="background:#D1FAE5;padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace">const EXCEL_URL = "";</code></li>
+            <li>Replace the empty string with your SharePoint link and add <code style="background:#D1FAE5;padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace">?download=1</code> at the end</li>
+            <li>Save index.html and re-upload it to GitHub / SharePoint</li>
+          </ol>
+          <div style="margin-top:12px;font-size:12px;color:#065F46;background:#D1FAE5;border-radius:8px;padding:10px;font-family:'DM Mono',monospace">const EXCEL_URL = "https://COMPANY.sharepoint.com/sites/SITE/Shared%20Documents/DE_Catalog.xlsx?download=1";</div>
+        </div>
+
+        <div style="border:1px solid var(--lbr);border-radius:12px;padding:20px;background:var(--lbg)">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--ltx);margin-bottom:12px;font-size:14px">Option B &mdash; Three CSV files</div>
+          <ol style="font-size:13px;color:#1E40AF;padding-left:20px;display:flex;flex-direction:column;gap:8px">
+            <li>Upload <strong>DOMAINS.csv</strong>, <strong>PROJECTS.csv</strong> and <strong>DOCUMENTS.csv</strong> to SharePoint</li>
+            <li>For each file: right-click &rarr; <strong>Copy link</strong> &rarr; add <code style="background:#DBEAFE;padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace">?download=1</code></li>
+            <li>Open <strong>index.html</strong> in Notepad / VS Code and paste all three URLs into <code style="background:#DBEAFE;padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace">CSV_URLS</code></li>
+          </ol>
+        </div>
+
+        <div style="border:1px solid var(--pbr);border-radius:12px;padding:16px;background:var(--pbg)">
+          <div style="font-weight:600;color:var(--ptx);margin-bottom:6px;font-size:13px">SharePoint sharing setting &mdash; critical</div>
+          <div style="font-size:13px;color:var(--ptx)">When you copy the SharePoint link, make sure sharing is set to <strong>"Anyone with the link can view"</strong> (not "People in your organisation"). This allows the browser to fetch the file. You can do this in SharePoint &rarr; Manage access &rarr; change link setting.</div>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('kdom').textContent='—';
+  ['kt','kd','kp','kl'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('ks').textContent='setup required';
 }
 
-// ─── DOMAIN PILLS ────────────────────────────────────────────────────────────
-function buildDomainPills() {
-  const container = document.getElementById('domain-pills');
-  container.innerHTML = DOMAINS.map(d =>
-    `<span class="pill" onclick="setDomainFilter('${d.id}',this)">${d.name.split(',')[0].trim()}</span>`
+// ── KPI ──────────────────────────────────────────────────────────────────────
+function updateKPIs(p){
+  const act=new Set(p.map(x=>x.DomainName||x.DomainID)).size;
+  document.getElementById('kt').textContent=p.length;
+  document.getElementById('ks').textContent='across '+act+' active domain'+(act!==1?'s':'');
+  document.getElementById('kd').textContent=p.filter(x=>x.Status==='Delivered').length;
+  document.getElementById('kp').textContent=p.filter(x=>x.Status==='In Progress').length;
+  document.getElementById('kl').textContent=p.filter(x=>x.Status==='To Be Started').length;
+}
+
+function buildPills(){
+  document.getElementById('dpills').innerHTML=DOM.map(d=>
+    `<span class="pill" onclick="setDF('${e(d.DomainID||d.DomainName)}',this)">${(d.DomainName||'').split(',')[0].trim()}</span>`
   ).join('');
 }
 
-// ─── RENDER DOMAINS ──────────────────────────────────────────────────────────
-function renderDomains() {
-  const grid = document.getElementById('domain-grid');
-  const filtered = domainFilter === 'All' ? DOMAINS : DOMAINS.filter(d => d.id === domainFilter);
-  if (!filtered.length) { grid.innerHTML = '<div class="empty-msg"><div class="em-icon">🔍</div><p>No domains match your filter.</p></div>'; return; }
+// ── DOMAIN GRID ───────────────────────────────────────────────────────────────
+function renderDomains(){
+  const list=domF==='All'?DOM:DOM.filter(d=>(d.DomainID||d.DomainName)===domF);
+  const allP=domF==='All'?PRJ:PRJ.filter(p=>list.some(d=>matchDom(d,p)));
+  updateKPIs(allP);
+  document.getElementById('kdom').textContent=DOM.length;
+  const grid=document.getElementById('dgrid');
+  if(!list.length){grid.innerHTML='<p style="color:var(--sub);padding:1rem">No domains.</p>';return;}
 
-  const allProjs = domainFilter === 'All' ? projects : projects.filter(p => DOMAINS.find(d=>d.id===domainFilter)?.name===p.DomainName);
-  updateKPIs(allProjs);
+  const AV_BG={blue:'#EFF6FF',green:'#ECFDF5',teal:'#F0FDFA',coral:'#FFF1EE',amber:'#FFFBEB',navy:'#EFF6FF',purple:'#F5F3FF',grey:'#F8FAFC',lime:'#F7FEE7'};
+  const AV_TX={blue:'#1D4ED8',green:'#065F46',teal:'#134E4A',coral:'#9A3412',amber:'#92400E',navy:'#1E3A5F',purple:'#5B21B6',grey:'#475569',lime:'#3F6212'};
 
-  grid.innerHTML = filtered.map(d => {
-    const dp = projects.filter(p => p.DomainName === d.name);
-    const del = dp.filter(p=>p.Status==='Delivered').length;
-    const prg = dp.filter(p=>p.Status==='In Progress').length;
-    const pln = dp.filter(p=>p.Status==='To Be Started').length;
-    const inits = d.owner.replace(/\/.*/,'').trim().split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    return `
-    <div class="domain-card" onclick="openDomain('${d.id}')" style="--accent:${d.accent}">
-      <div style="height:3px;background:${d.accent};border-radius:var(--rad) var(--rad) 0 0"></div>
-      <div class="dc-body">
+  grid.innerHTML=list.map((d,i)=>{
+    const dp=PRJ.filter(p=>matchDom(d,p));
+    const del=dp.filter(p=>p.Status==='Delivered').length;
+    const prg=dp.filter(p=>p.Status==='In Progress').length;
+    const pln=dp.filter(p=>p.Status==='To Be Started').length;
+    const inits=(d.DomainOwner||'').replace(/\/.*/,'').trim().split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+    const accent=d.DomainColor||'#0070EF';
+    const cls=d.DomainColorClass||'blue';
+    return `<div class="dc" onclick="openDomain('${e(d.DomainID||d.DomainName)}')" style="animation-delay:${i*0.04}s">
+      <div style="height:3px;background:${accent}"></div>
+      <div class="dc-b">
         <div class="dc-top">
-          <div class="dc-avatar av-${d.color}">${inits}</div>
-          <div class="dc-info">
-            <div class="dc-name">${d.name}</div>
-            <div class="dc-owner">${d.owner}</div>
-          </div>
+          <div class="dc-av" style="background:${AV_BG[cls]||'#EFF6FF'};color:${AV_TX[cls]||'#1D4ED8'}">${inits}</div>
+          <div><div class="dc-n">${h(d.DomainName)}</div><div class="dc-o">${h(d.DomainOwner)}</div></div>
         </div>
-        <div class="dc-desc">${d.desc}</div>
-        <div class="dc-stats">
-          <span class="dc-stat stat-del">${del} Delivered</span>
-          <span class="dc-stat stat-prg">${prg} In Progress</span>
-          <span class="dc-stat stat-pln">${pln} To Be Started</span>
+        <div class="dc-desc">${h(d.DomainDescription)}</div>
+        <div class="dc-st">
+          <span class="dc-s s-d">${del} Delivered</span>
+          <span class="dc-s s-p">${prg} In Progress</span>
+          <span class="dc-s s-l">${pln} To Be Started</span>
         </div>
       </div>
-      <div class="dc-footer">
-        <span class="dc-footer-label">View ${dp.length} project${dp.length!==1?'s':''} →</span>
-        <span class="dc-arrow">→</span>
-      </div>
+      <div class="dc-ft"><span class="dc-ftl">View ${dp.length} project${dp.length!==1?'s':''} \u2192</span><span class="dc-arr">\u2192</span></div>
     </div>`;
   }).join('');
-
-  updateBreadcrumb([]);
-  setBreadcrumb([]);
+  setBC([]);
 }
 
-// ─── OPEN DOMAIN ─────────────────────────────────────────────────────────────
-function openDomain(domainId) {
-  currentDomain = DOMAINS.find(d=>d.id===domainId);
-  statusFilter = 'All';
-  document.querySelectorAll('#status-filter-row .pill').forEach((p,i)=>{p.classList.remove('active');if(i===0)p.classList.add('active');});
-  showView('view-projects');
-  setBreadcrumb([{label:currentDomain.name}]);
-  updateKPIs(projects.filter(p=>p.DomainName===currentDomain.name));
-  document.getElementById('proj-view-title').textContent = currentDomain.name;
-  document.getElementById('proj-view-sub').textContent = `Domain Owner: ${currentDomain.owner}  ·  Data Platform Lead: Gaurav Badhani`;
-  renderProjects();
+// ── DOMAIN / PROJECTS ─────────────────────────────────────────────────────────
+function matchDom(d,p){return p.DomainName===d.DomainName||p.DomainID===d.DomainID;}
+function gdp(d){return PRJ.filter(p=>matchDom(d,p));}
+
+function openDomain(did){
+  curDom=DOM.find(d=>(d.DomainID||d.DomainName)===did); if(!curDom)return;
+  stF='All';
+  document.querySelectorAll('#sfr .pill').forEach((p,i)=>{p.classList.remove('active');if(i===0)p.classList.add('active');});
+  showView('v-proj'); setBC([{label:curDom.DomainName}]);
+  updateKPIs(gdp(curDom));
+  document.getElementById('pvt').textContent=curDom.DomainName;
+  document.getElementById('pvs').textContent='Domain Owner: '+(curDom.DomainOwner||'\u2014')+' \u00b7 Data Platform Lead: Gaurav Badhani';
+  renderProjs();
 }
 
-// ─── RENDER PROJECTS ─────────────────────────────────────────────────────────
-function renderProjects() {
-  let projs = projects.filter(p => p.DomainName === currentDomain.name);
-  if (statusFilter !== 'All') projs = projs.filter(p => p.Status === statusFilter);
-  const tbody = document.getElementById('proj-tbody');
-  if (!projs.length) {
-    tbody.innerHTML = '<tr class="empty"><td colspan="8">No projects match the selected status filter.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = projs.map(p => {
-    const sc = p.Status==='Delivered'?'sb-del':p.Status==='In Progress'?'sb-prg':'sb-pln';
-    const pct = parseInt(p.ProgressPct)||0;
-    const cost = p.ProjectCost ? '€'+parseInt(p.ProjectCost).toLocaleString() : '—';
-    const sd = p.StartDate ? new Date(p.StartDate).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
-    const ed = p.TargetEndDate ? new Date(p.TargetEndDate).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
-    return `<tr onclick="openProject('${p.ProjectID}')">
-      <td><div class="pname">${p.ProjectName}</div></td>
-      <td><span class="status-badge ${sc}">${p.Status}</span></td>
-      <td>${p.ProjectOwner||'—'}</td>
-      <td><span class="arch-tag">${(p.Architecture||'').split('·')[0].trim()}</span></td>
-      <td>${sd}</td><td>${ed}</td>
+function renderProjs(){
+  let projs=gdp(curDom); if(stF!=='All') projs=projs.filter(p=>p.Status===stF);
+  const tb=document.getElementById('ptb');
+  if(!projs.length){tb.innerHTML='<tr class="empty"><td colspan="8">No projects match the selected filter.</td></tr>';return;}
+  tb.innerHTML=projs.map(p=>{
+    const pct=toNum(p.ProgressPct);
+    const cost=p.ProjectCost?'\u20ac'+toNum(p.ProjectCost).toLocaleString():'\u2014';
+    return `<tr onclick="openProj('${e(p.ProjectID)}')">
+      <td><div class="pn">${h(p.ProjectName)}</div></td>
+      <td><span class="sbg ${sbc(p.Status)}">${p.Status}</span></td>
+      <td>${h(p.ProjectOwner||'\u2014')}</td>
+      <td><span class="atag">${h((p.Architecture||'').split(/[-\u00b7]/)[0].trim())}</span></td>
+      <td>${fd(p.StartDate)}</td><td>${fd(p.TargetEndDate)}</td>
       <td style="font-weight:600;color:var(--navy)">${cost}</td>
-      <td>
-        <div class="prog-wrap">
-          <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
-          <span class="prog-pct">${pct}%</span>
-        </div>
-      </td>
-      <td style="font-size:11px;color:var(--muted);max-width:180px">${p.ExpectedResult||'—'}</td>
+      <td><div class="pw"><div class="pb"><div class="pf" style="width:${pct}%"></div></div><span class="pp">${pct}%</span></div></td>
     </tr>`;
   }).join('');
 }
 
-// ─── OPEN PROJECT ─────────────────────────────────────────────────────────────
-function openProject(pid) {
-  const p = projects.find(x=>x.ProjectID===pid); if(!p) return;
-  currentProject = p;
-  showView('view-detail');
-  setBreadcrumb([{label:currentDomain.name,onclick:`openDomain('${currentDomain.id}')`},{label:p.ProjectName}]);
-  updateKPIs(projects.filter(x=>x.DomainName===currentDomain.name));
+// ── PROJECT DETAIL ────────────────────────────────────────────────────────────
+function openProj(pid){
+  const p=PRJ.find(x=>x.ProjectID===pid); if(!p) return;
+  showView('v-det'); setBC([{label:curDom.DomainName,onclick:`openDomain('${e(curDom.DomainID||curDom.DomainName)}')`},{label:p.ProjectName}]);
+  updateKPIs(gdp(curDom));
+  const pct=toNum(p.ProgressPct);
+  const cost=p.ProjectCost?'\u20ac'+toNum(p.ProjectCost).toLocaleString():'\u2014';
+  const sd=fd(p.StartDate,'lg'),ed=fd(p.TargetEndDate,'lg'),aed=p.ActualEndDate?fd(p.ActualEndDate,'lg'):null;
 
-  const sc = p.Status==='Delivered'?'sb-del':p.Status==='In Progress'?'sb-prg':'sb-pln';
-  const pct = parseInt(p.ProgressPct)||0;
-  const cost = p.ProjectCost ? '€'+parseInt(p.ProjectCost).toLocaleString() : '—';
-  const sd  = p.StartDate ? new Date(p.StartDate).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
-  const ed  = p.TargetEndDate ? new Date(p.TargetEndDate).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
-  const aed = p.ActualEndDate ? new Date(p.ActualEndDate).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : null;
-
-  document.getElementById('d-hero').innerHTML = `
+  document.getElementById('dhero').innerHTML=`
     <div class="dh-top">
-      <div>
-        <div class="dh-title">${p.ProjectName}</div>
-        <div class="dh-domain">
-          <span>${currentDomain.name}</span>
-          <span style="color:var(--border2)">·</span>
-          <span>Data Platform Lead: <span class="dh-lead">Gaurav Badhani</span></span>
-        </div>
-      </div>
-      <span class="status-badge ${sc}" style="font-size:12px;padding:6px 14px">${p.Status}</span>
+      <div><div class="dh-t">${h(p.ProjectName)}</div>
+      <div class="dh-d">${h(curDom.DomainName)}<span style="color:var(--bdr2)">&middot;</span>Data Platform Lead: <span class="dh-ld">Gaurav Badhani</span></div></div>
+      <span class="sbg ${sbc(p.Status)}" style="font-size:12px;padding:6px 14px">${p.Status}</span>
     </div>
-    <div class="dh-badges">
-      <span class="dh-tag">${p.Architecture||'—'}</span>
+    <div class="dh-tg">
+      <span class="dh-tag">${h(p.Architecture||'\u2014')}</span>
       <span class="dh-tag">Start: ${sd}</span>
       <span class="dh-tag">Target: ${ed}</span>
       <span class="dh-tag dh-cost">${cost}</span>
-    </div>
-    ${p.ExpectedResult ? `<div style="margin-top:10px;padding:10px 14px;background:linear-gradient(135deg,#EFF6FF,#F0FDF4);border-radius:10px;border:1px solid #BFDBFE;display:flex;align-items:flex-start;gap:8px">
-      <span style="font-size:11px;font-weight:700;color:#1D4ED8;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;padding-top:1px;font-family:var(--font-mono)">Expected Result</span>
-      <span style="font-size:12px;color:#1E3A5F;line-height:1.5">${p.ExpectedResult}</span>
-    </div>` : ''}
-    ${p.ExpectedResult ? `<div style="margin-top:10px;padding:10px 14px;background:var(--pln-bg);border:1px solid var(--pln-br);border-radius:var(--rad-sm);font-size:12px;color:var(--pln-tx)"><span style="font-weight:700;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:4px">Expected Result</span>${p.ExpectedResult}</div>` : ''}`;
-
-  // Build docs
-  const docTypes = ['HLD / PARD','New Source Ingestion','Source Data Dictionary','DLDM/LLDM Data Modeling Document','Tech Specs','Operation Manual'];
-  const docIcons = ['HLD','SRC','DIC','MDL','TEC','OPS'];
-  const docColors = ['#EFF6FF','#F0FDF4','#FFFBEB','#F5F3FF','#FFF1F2','#F0FDFA'];
-  const docTextColors = ['#1D4ED8','#065F46','#92400E','#5B21B6','#9F1239','#134E4A'];
-  const docsHtml = docTypes.map((dt,i) => {
-    const doc = documents.find(d=>d.ProjectID===pid && d.DocumentType===dt);
-    const status = doc ? doc.DocumentStatus : 'Pending';
-    const link = doc?.DocumentLink;
-    const sc2 = status==='Available'?'ds-avail':status==='In Review'?'ds-rev':'ds-pend';
-    const linkHtml = link ? `<a href="${link}" target="_blank" class="doc-link">Open →</a>` : '';
-    return `<div class="doc-row">
-      <div class="doc-icon" style="background:${docColors[i]};color:${docTextColors[i]}">${docIcons[i]}</div>
-      <span class="doc-name">${dt}</span>
-      <span class="doc-status ${sc2}">${status}</span>
-      ${linkHtml}
     </div>`;
+
+  const DT=['HLD / PARD','New Source Ingestion','Source Data Dictionary','DLDM/LLDM Data Modeling Document','Tech Specs','Operation Manual'];
+  const DI=[['HLD','#EFF6FF','#1D4ED8'],['SRC','#F0FDF4','#065F46'],['DIC','#FFFBEB','#92400E'],['MDL','#F5F3FF','#5B21B6'],['TEC','#FFF1F2','#9F1239'],['OPS','#F0FDFA','#134E4A']];
+  const docsHtml=DT.map((dt,i)=>{
+    const doc=DOC.find(d=>d.ProjectID===pid&&d.DocumentType===dt);
+    const status=doc?doc.DocumentStatus:'Pending';
+    const link=doc&&doc.DocumentLink&&doc.DocumentLink.trim()&&doc.DocumentLink!=='-'?doc.DocumentLink.trim():null;
+    const sc2=status==='Available'?'ds-a':status==='In Review'?'ds-r':'ds-p';
+    const [ico,bg,tx]=DI[i];
+    const btn=link?`<a href="${link}" target="_blank" rel="noopener" class="dlnk"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open</a>`
+                   :`<span class="dlnk-na">Paste link in file</span>`;
+    return `<div class="dr"><div class="dic" style="background:${bg};color:${tx}">${ico}</div><span class="dn">${dt}</span><span class="ds2 ${sc2}">${status}</span>${btn}</div>`;
   }).join('');
 
-  const ucHtml = (p.UseCases||'').split('|').map(u=>u.trim()).filter(Boolean).map(u=>`<div class="uc-item"><div class="uc-dot"></div>${u}</div>`).join('');
-  const avColors = ['#EFF6FF','#ECFDF5','#FFFBEB','#F5F3FF','#FFF1F2','#F0FDFA'];
-  const avTxtCol = ['#1D4ED8','#065F46','#92400E','#5B21B6','#9F1239','#134E4A'];
-  const teamAvatars = (p.DETeamMembers||'').split(',').map((m,i)=>{
-    const inits = m.trim().split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    return `<span title="${m.trim()}" style="width:26px;height:26px;border-radius:50%;background:${avColors[i%6]};color:${avTxtCol[i%6]};font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:3px;font-family:var(--font-mono)">${inits}</span>`;
+  const ucHtml=(p.UseCases||'').split('|').map(u=>u.trim()).filter(Boolean).map(u=>`<div class="uci"><div class="ucd"></div>${h(u)}</div>`).join('');
+  const outHtml=p.ExpectedOutcome?`<div class="obox"><p class="otxt">${h(p.ExpectedOutcome)}</p></div>`:'<p style="font-size:12px;color:var(--sub)">Not yet defined.</p>';
+  const SVGS={
+    'doc':'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+    'chk':'<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+    'str':'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+    'fil':'<path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/>',
+    'usr':'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    'cal':'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    'lay':'<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>'
+  };
+  const card=(ibg,itx,ico,title,body,note='')=>`<div class="dc2"><div class="dch"><div class="dci" style="background:${ibg};color:${itx}"><svg viewBox="0 0 24 24">${SVGS[ico]}</svg></div><span class="dct">${title}</span>${note?`<span class="dct-note">${note}</span>`:''}</div><div class="dcb">${body}</div></div>`;
+  const fr=(l,v)=>`<div class="fr"><span class="frl">${l}</span><span class="frv">${v}</span></div>`;
+
+  document.getElementById('dmain').innerHTML=
+    card('#EFF6FF','#1D4ED8','doc','Project Description','<p class="dtxt">'+h(p.ProjectDescription||'\u2014')+'</p>')+
+    card('#F0FDF4','#065F46','chk','Use Cases','<div class="ucl">'+ucHtml+'</div>')+
+    card('#F5F3FF','#5B21B6','str','Expected Outcome',outHtml)+
+    card('#FFFBEB','#92400E','fil','Project Documents','<div class="dl">'+docsHtml+'</div>','Edit DocumentLink in your file');
+
+  const AC=[['#EFF6FF','#1D4ED8'],['#ECFDF5','#065F46'],['#FFFBEB','#92400E'],['#F5F3FF','#5B21B6'],['#FFF1F2','#9F1239'],['#F0FDFA','#134E4A']];
+  const avs=(p.DETeamMembers||'TBD').split(',').map((m,i)=>{
+    const ini=m.trim().split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+    return `<span class="avsm" title="${m.trim()}" style="background:${AC[i%6][0]};color:${AC[i%6][1]}">${ini}</span>`;
   }).join('');
 
-  document.getElementById('d-main').innerHTML = `
-    <div class="det-card">
-      <div class="det-card-hdr">
-        <div class="det-card-icon" style="background:#EFF6FF;color:#1D4ED8">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        </div>
-        <span class="det-card-title">Project Description</span>
-      </div>
-      <div class="det-card-body"><p class="desc-text">${p.ProjectDescription||'—'}</p></div>
-    </div>
-    <div class="det-card">
-      <div class="det-card-hdr">
-        <div class="det-card-icon" style="background:#F0FDF4;color:#065F46">
-          <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-        </div>
-        <span class="det-card-title">Use Cases</span>
-      </div>
-      <div class="det-card-body"><div class="uc-list">${ucHtml||'<span style="color:var(--sub);font-size:12px">No use cases defined</span>'}</div></div>
-    </div>
-    ${expRes ? `
-    <div class="det-card">
-      <div class="det-card-hdr">
-        <div class="det-card-icon" style="background:#F0F9FF;color:#0369A1">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        </div>
-        <span class="det-card-title">Expected Result</span>
-      </div>
-      <div class="det-card-body"><p class="desc-text" style="color:#0369A1;font-weight:500">${expRes}</p></div>
-    </div>` : ''}
-    <div class="det-card">
-      <div class="det-card-hdr">
-        <div class="det-card-icon" style="background:#FFFBEB;color:#92400E">
-          <svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-        </div>
-        <span class="det-card-title">Project Documents</span>
-      </div>
-      <div class="det-card-body"><div class="doc-list">${docsHtml}</div></div>
-    </div>`;
-
-  document.getElementById('d-side').innerHTML = `
-    <div class="det-card">
-      <div class="det-card-hdr">
-        <div class="det-card-icon" style="background:#F5F3FF;color:#5B21B6">
-          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        </div>
-        <span class="det-card-title">People</span>
-      </div>
-      <div class="det-card-body">
-        <div class="field-list">
-          <div class="field-row"><span class="field-lbl">Project Owner</span><span class="field-val">${p.ProjectOwner||'—'}</span></div>
-          <div class="field-row"><span class="field-lbl">Data Owner</span><span class="field-val">${p.DataOwner||'—'}</span></div>
-          <div class="field-row"><span class="field-lbl">Data Stewards</span><span class="field-val">${p.DataStewards||'—'}</span></div>
-          <div class="field-row"><span class="field-lbl">Platform Lead</span><span class="field-val lead">Gaurav Badhani</span></div>
-          <div class="field-row" style="flex-direction:column;gap:6px"><span class="field-lbl">DE Team</span><div style="display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-top:4px">${teamAvatars}<span style="font-size:11px;color:var(--muted);margin-left:4px">${p.DETeamMembers||'TBD'}</span></div></div>
-        </div>
-      </div>
-    </div>
-    <div class="det-card">
-      <div class="det-card-hdr">
-        <div class="det-card-icon" style="background:#FFF1F2;color:#9F1239">
-          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        </div>
-        <span class="det-card-title">Timeline & Cost</span>
-      </div>
-      <div class="det-card-body">
-        <div class="field-list">
-          <div class="field-row"><span class="field-lbl">Start Date</span><span class="field-val">${sd}</span></div>
-          <div class="field-row"><span class="field-lbl">Target End</span><span class="field-val">${ed}</span></div>
-          ${aed?`<div class="field-row"><span class="field-lbl">Actual End</span><span class="field-val">${aed}</span></div>`:''}
-          <div class="field-row"><span class="field-lbl">Project Cost</span><span class="field-val cost-val">${cost}</span></div>
-          <div class="field-row" style="flex-direction:column;gap:4px">
-            <div style="display:flex;justify-content:space-between"><span class="field-lbl">Progress</span><span style="font-size:12px;font-weight:700;color:var(--medblue);font-family:var(--font-mono)">${pct}%</span></div>
-            <div class="tbar-wrap"><div class="tbar-fill" style="width:${pct}%"></div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="det-card">
-      <div class="det-card-hdr">
-        <div class="det-card-icon" style="background:#F0FDFA;color:#134E4A">
-          <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-        </div>
-        <span class="det-card-title">Architecture</span>
-      </div>
-      <div class="det-card-body">
-        <div class="field-list">
-          <div class="field-row"><span class="field-lbl">Stack</span><span class="field-val"><span class="arch-tag">${p.Architecture||'—'}</span></span></div>
-          <div class="field-row"><span class="field-lbl">Domain</span><span class="field-val">${currentDomain.name}</span></div>
-        </div>
-      </div>
-    </div>`;
+  document.getElementById('dside').innerHTML=
+    card('#F5F3FF','#5B21B6','usr','People',
+      '<div class="fl2">'+fr('Project Owner',h(p.ProjectOwner||'\u2014'))+fr('Data Owner',h(p.DataOwner||'\u2014'))+
+      fr('Data Stewards',h(p.DataStewards||'\u2014'))+fr('Platform Lead','<span class="frv-ld">Gaurav Badhani</span>')+
+      '<div class="fr" style="flex-direction:column;gap:6px"><span class="frl">DE Team</span><div style="display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-top:4px">'+avs+'<span style="font-size:11px;color:var(--mut);margin-left:4px">'+h(p.DETeamMembers||'TBD')+'</span></div></div></div>')+
+    card('#FFF1F2','#9F1239','cal','Timeline &amp; Cost',
+      '<div class="fl2">'+fr('Start Date',sd)+fr('Target End',ed)+(aed?fr('Actual End',aed):'')+
+      fr('Project Cost','<span class="cval">'+cost+'</span>')+
+      '<div class="fr" style="flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between"><span class="frl">Progress</span><span style="font-size:12px;font-weight:700;color:var(--med);font-family:\'DM Mono\',monospace">'+pct+'%</span></div><div class="tbar"><div class="tbarf" style="width:'+pct+'%"></div></div></div></div>')+
+    card('#F0FDFA','#134E4A','lay','Architecture',
+      '<div class="fl2">'+fr('Stack','<span class="atag">'+h(p.Architecture||'\u2014')+'</span>')+fr('Domain',h(curDom.DomainName))+'</div>');
 }
 
-// ─── NAVIGATION HELPERS ───────────────────────────────────────────────────────
-function showView(id) {
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function sbc(s){return s==='Delivered'?'sb-d':s==='In Progress'?'sb-p':'sb-l';}
+function toNum(v){const n=parseFloat(String(v||'0').replace(/[^0-9.]/g,''));return isNaN(n)?0:Math.round(n);}
+function fd(d,m){
+  if(!d||d==='TBD'||d==='') return '\u2014';
+  try{
+    const dt = d instanceof Date ? d : new Date(d);
+    if(isNaN(dt)) return String(d);
+    return dt.toLocaleDateString('en-GB',m==='lg'?{day:'2-digit',month:'short',year:'numeric'}:{day:'2-digit',month:'short',year:'2-digit'});
+  }catch{return String(d);}
 }
-function goHome() {
-  currentDomain=null; domainFilter='All'; statusFilter='All';
-  document.querySelectorAll('.filter-bar .pill').forEach((p,i)=>{p.classList.remove('active');if(i===0)p.classList.add('active');});
-  showView('view-domains');
-  updateKPIs(projects);
-  renderDomains();
+function h(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function e(s){return (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function setBC(ex){
+  let html='<span class="bc-lnk" onclick="goHome()">All Domains</span>';
+  ex.forEach(x=>{html+='<span class="bc-sep">\u203a</span>';html+=x.onclick?`<span class="bc-lnk" onclick="${x.onclick}">${h(x.label)}</span>`:`<span class="bc-cur">${h(x.label)}</span>`;});
+  document.getElementById('bc').innerHTML=html;
 }
-function goBack() {
-  if(currentDomain){showView('view-projects');setBreadcrumb([{label:currentDomain.name}]);updateKPIs(projects.filter(p=>p.DomainName===currentDomain.name));}
-  else goHome();
+function goHome(){curDom=null;domF='All';stF='All';document.querySelectorAll('.fbar .pill').forEach((p,i)=>{p.classList.remove('active');if(i===0)p.classList.add('active');});showView('v-dom');updateKPIs(PRJ);document.getElementById('kdom').textContent=DOM.length;renderDomains();}
+function goBack(){if(curDom){showView('v-proj');setBC([{label:curDom.DomainName}]);updateKPIs(gdp(curDom));renderProjs();}else goHome();}
+function setDF(f,el){domF=f;document.querySelectorAll('.fbar .pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');showView('v-dom');renderDomains();}
+function setSF(f,el){stF=f;document.querySelectorAll('#sfr .pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');renderProjs();}
+function setLoad(msg){document.getElementById('load-txt').textContent=msg;document.getElementById('loading-screen').style.display='flex';['v-dom','v-proj','v-det'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});}
+function hideLoad(){document.getElementById('loading-screen').style.display='none';}
+function setBadge(txt,type){const b=document.getElementById('ts');b.textContent=txt;b.className='tb-badge badge-'+type;}
+function showError(err){
+  setBadge('Connection failed','err');
+  document.getElementById('err-title').textContent='Could not load catalog data';
+  document.getElementById('err-body').innerHTML=`<strong>Error:</strong> ${h(err.message)}<br><br>
+    <strong>Common fixes:</strong><br>
+    &bull; Make sure the URL ends with <code>?download=1</code><br>
+    &bull; In SharePoint, change sharing to <strong>"Anyone with the link can view"</strong><br>
+    &bull; For Excel: confirm the file has sheets named <code>DOMAINS</code>, <code>PROJECTS</code>, <code>DOCUMENTS</code><br>
+    &bull; Try opening the URL directly in your browser to verify it downloads`;
+  document.getElementById('err-banner').classList.add('show');
+  showView('v-dom');
+  document.getElementById('dgrid').innerHTML='';
 }
-function setDomainFilter(f,el) {
-  domainFilter=f;
-  document.querySelectorAll('.filter-bar .pill').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active');
-  showView('view-domains');
-  renderDomains();
-}
-function setStatusFilter(f,el) {
-  statusFilter=f;
-  document.querySelectorAll('#status-filter-row .pill').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active');
-  renderProjects();
-}
-function setBreadcrumb(extras) {
-  const bc = document.getElementById('breadcrumb');
-  let html = `<span class="bc-link" onclick="goHome()">All Domains</span>`;
-  extras.forEach((e,i) => {
-    html += `<span class="bc-sep">›</span>`;
-    if(e.onclick) html += `<span class="bc-link" onclick="${e.onclick}">${e.label}</span>`;
-    else html += `<span class="bc-current">${e.label}</span>`;
-  });
-  bc.innerHTML = html;
-}
-function updateBreadcrumb(extras){setBreadcrumb(extras);}
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-loadData();
+init();
 </script>
 </body>
 </html>
